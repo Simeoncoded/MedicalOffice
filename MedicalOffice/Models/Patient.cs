@@ -46,6 +46,9 @@ namespace MedicalOffice.Models
         [DataType(DataType.EmailAddress)]
         public string? Email { get; set; }
 
+        [Required(ErrorMessage ="You must select the Patient's Health Coverage!")]
+        public Coverage Coverage { get; set; }
+
         [Required(ErrorMessage ="You must select a Primary Care Physician.")]
         [Display(Name = "Doctor")]
         public int DoctorID { get; set; }

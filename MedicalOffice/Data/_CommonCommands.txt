@@ -1,0 +1,5 @@
+﻿ Add-Migration -Context ApplicationDbContext -OutputDir Data\Migrations Initial
+
+ Add-Migration -Context MedicalOfficeContext -O Data\MOMigrations Initial
+
+  Update-Database -Context MedicalOfficeContext

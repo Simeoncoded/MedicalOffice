@@ -20,3 +20,8 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* For margin in between forms*/
+.form-group{
+    margin-bottom: 1rem;
+}
