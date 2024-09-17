@@ -12,26 +12,15 @@
 <table class="table">
     <thead>
         <tr>
+           
             <th>
-                @Html.DisplayNameFor(model => model.OHIP)
+                @Html.DisplayNameFor(model => model.Summary)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.FirstName)
+                @Html.DisplayNameFor(model => model.Age)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.MiddleName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LastName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DOB)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ExpYrVisits)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Phone)
+                @Html.DisplayNameFor(model => model.PhoneFormatted)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Email)
@@ -49,25 +38,13 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.OHIP)
+                @Html.DisplayFor(modelItem => item.Summary)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.FirstName)
+                @Html.DisplayFor(modelItem => item.Age)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.MiddleName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DOB)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExpYrVisits)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Phone)
+                @Html.DisplayFor(modelItem => item.PhoneFormatted)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Email)
@@ -76,7 +53,7 @@
                 @Html.DisplayFor(modelItem => item.Coverage)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Doctor.FirstName)
+                @Html.DisplayFor(modelItem => item.Doctor.Summary)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |

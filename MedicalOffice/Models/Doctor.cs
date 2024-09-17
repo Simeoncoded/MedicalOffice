@@ -6,6 +6,27 @@ namespace MedicalOffice.Models
     {
         public int ID { get; set; }
 
+        public string Summary
+        {
+            get
+            {
+                return "Dr. " + FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? "" :
+                         (" " + (char?)MiddleName[0] + " ").ToUpper())
+                    + LastName;
+            }
+        }
+
+        public string FormalName
+        {
+            get
+            {
+                return LastName + ", " + FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? "" :
+                         (" " + (char?)MiddleName[0] + " ").ToUpper());
+            }
+        }
+
         [Display(Name = "First Name")]
         [Required(ErrorMessage ="You cannot leave the first name blank.")]
         [StringLength(50, ErrorMessage ="First name cannot be more than 50 characters long.")]

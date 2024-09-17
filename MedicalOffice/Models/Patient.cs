@@ -7,6 +7,44 @@ namespace MedicalOffice.Models
 
         public int ID { get; set; }
 
+        [Display(Name = "Patient")]
+
+        public string Summary
+        {
+            get
+            {
+                return FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? "" :
+                         (" " + (char?)MiddleName[0] + " ").ToUpper())
+                    + LastName;
+            }
+        }
+
+        public string? Age
+        {
+            get
+            {
+                if (DOB == null) { return null; }
+                DateTime today = DateTime.Today;
+                int? a = today.Year - DOB?.Year
+                - ((today.Month < DOB?.Month ||
+                    (today.Month == DOB?.Month && today.Day < DOB?.Day) ? 1 : 0));
+                return a?.ToString();
+            }
+        }
+
+        [Display(Name = "Age (DOB)")]
+
+        public string AgeSummary => (DOB == null) ? "Unknown" : Age + "(" + DOB.GetValueOrDefault().ToString("yyyy-mm-dd") + ")";
+
+        [Display(Name = "Phone")]
+
+        public string PhoneFormatted => "(" + Phone?.Substring(0, 3) + ")"
+                +Phone?.Substring(3, 3) + "-" + Phone?[6..];
+
+        
+      
+
         [Required(ErrorMessage = "You cannot leave the OHIP number blank")]
         [RegularExpression("^\\d{10}$", ErrorMessage = "The OHIP number must be exactly 10 numeric digits.")]
         [StringLength(10)]
