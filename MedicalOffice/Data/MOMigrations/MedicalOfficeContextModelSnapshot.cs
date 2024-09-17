@@ -79,7 +79,6 @@ namespace MedicalOffice.Data.MOMigrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OHIP")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 

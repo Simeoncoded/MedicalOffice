@@ -22,7 +22,9 @@ namespace MedicalOffice.Controllers
         // GET: Doctor
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Doctors.ToListAsync());
+            return View(await _context.Doctors
+                .AsNoTracking()
+                .ToListAsync());
         }
 
         // GET: Doctor/Details/5
@@ -56,12 +58,23 @@ namespace MedicalOffice.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,FirstName,MiddleName,LastName")] Doctor doctor)
         {
-            if (ModelState.IsValid)
+
+            try
             {
-                _context.Add(doctor);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    _context.Add(doctor);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
+            catch (DbUpdateException)
+            {
+
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if problem persists please contact your system administrator");
+            }
+
+         
             return View(doctor);
         }
 
@@ -86,23 +99,29 @@ namespace MedicalOffice.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,FirstName,MiddleName,LastName")] Doctor doctor)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id != doctor.ID)
+            //Go get the Doctor to update
+            var doctorToUpdate = await _context.Doctors.FirstOrDefaultAsync(p => p.ID == id);
+
+            //check that you got it or exit with a not found error
+            if (doctorToUpdate == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            //Try updating it with the values posted
+            if (await TryUpdateModelAsync<Doctor>(doctorToUpdate, "",
+                d => d.FirstName, d => d.MiddleName, d => d.LastName))
             {
                 try
                 {
-                    _context.Update(doctor);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DoctorExists(doctor.ID))
+                    if (!DoctorExists(doctorToUpdate.ID))
                     {
                         return NotFound();
                     }
@@ -111,9 +130,12 @@ namespace MedicalOffice.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if problem persists please contact your system administrator");
+                }
             }
-            return View(doctor);
+            return View(doctorToUpdate);
         }
 
         // GET: Doctor/Delete/5
@@ -125,6 +147,7 @@ namespace MedicalOffice.Controllers
             }
 
             var doctor = await _context.Doctors
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (doctor == null)
             {
@@ -140,13 +163,33 @@ namespace MedicalOffice.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var doctor = await _context.Doctors.FindAsync(id);
-            if (doctor != null)
-            {
-                _context.Doctors.Remove(doctor);
-            }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                
+                if (doctor != null)
+                {
+                    _context.Doctors.Remove(doctor);
+                }
+
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException dex)
+            {
+
+                if (dex.GetBaseException().Message.Contains("FOREIGN KEY constraint failed"))
+                {
+                    ModelState.AddModelError("", "Unable to Delete Doctor. Remember, you cannot delete a Doctor that has patients assigned");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if problem persists please contact your system administrator");
+                }
+            }
+            return View(doctor);
+        
+            
         }
 
         private bool DoctorExists(int id)

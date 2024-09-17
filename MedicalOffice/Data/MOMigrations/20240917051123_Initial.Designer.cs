@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MedicalOffice.Data.MOMigrations
 {
     [DbContext(typeof(MedicalOfficeContext))]
-    [Migration("20240916055210_Initial")]
+    [Migration("20240917051123_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -51,6 +51,9 @@ namespace MedicalOffice.Data.MOMigrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Coverage")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("DOB")
                         .HasColumnType("TEXT");
 
@@ -79,7 +82,6 @@ namespace MedicalOffice.Data.MOMigrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OHIP")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 

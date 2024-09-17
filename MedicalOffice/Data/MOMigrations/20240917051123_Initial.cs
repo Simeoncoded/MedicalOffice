@@ -32,7 +32,7 @@ namespace MedicalOffice.Data.MOMigrations
                 {
                     ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    OHIP = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    OHIP = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
                     FirstName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     MiddleName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                     LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
@@ -40,6 +40,7 @@ namespace MedicalOffice.Data.MOMigrations
                     ExpYrVisits = table.Column<byte>(type: "INTEGER", nullable: false),
                     Phone = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    Coverage = table.Column<int>(type: "INTEGER", nullable: false),
                     DoctorID = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

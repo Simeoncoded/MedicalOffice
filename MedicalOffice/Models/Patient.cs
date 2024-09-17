@@ -2,7 +2,7 @@
 
 namespace MedicalOffice.Models
 {
-    public class Patient
+    public class Patient : IValidatableObject
     {
 
         public int ID { get; set; }
@@ -42,14 +42,13 @@ namespace MedicalOffice.Models
         public string PhoneFormatted => "(" + Phone?.Substring(0, 3) + ")"
                 +Phone?.Substring(3, 3) + "-" + Phone?[6..];
 
-        
-      
+     
 
-        [Required(ErrorMessage = "You cannot leave the OHIP number blank")]
+        //[Required(ErrorMessage = "You cannot leave the OHIP number blank")]
         [RegularExpression("^\\d{10}$", ErrorMessage = "The OHIP number must be exactly 10 numeric digits.")]
         [StringLength(10)]
 
-        public string OHIP { get; set; } = "";
+        public string? OHIP { get; set; }
 
         [Display(Name = "First Name")]
         [Required(ErrorMessage = "You cannot leave the first name blank.")]
@@ -93,6 +92,32 @@ namespace MedicalOffice.Models
         
         public Doctor? Doctor { get; set; }
 
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+           //The second argument (memberNames) is a IEnumerable<string> that 
+           //identifies which property has a validation error.
+           //If the error is with the entire object, use an empty string or
+           //leave the argument out and the message will display in the validation summary.
+           if(DOB.GetValueOrDefault() > DateTime.Today)
+            {
+                yield return new ValidationResult("Date of Birth cannot be in the future.", ["DOB"]);
+            }
 
+           //OHIP Number required but only if they have OHIP Coverage.
+           if(Coverage == Coverage.OHIP)
+            {
+                if(OHIP == null)
+                {
+                    yield return new ValidationResult("OHIP cannot be left blank since the patient has OHIP coverage.", ["OHIP"]);
+                }
+            }
+           else
+            {
+                if(OHIP != null)
+                {
+                    yield return new ValidationResult("OHIP must be blank since the patient does no have OHIP coverage.", ["OHIP"]);
+                }
+            }
+        }
     }
 }
