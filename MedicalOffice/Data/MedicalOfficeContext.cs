@@ -29,6 +29,9 @@ namespace MedicalOffice.Data
             modelBuilder.Entity<Patient>()
                 .HasIndex(p => p.OHIP)
                 .IsUnique();
+    
+            //To deal with multiple births among our patients
+            //add a unique index to t
         }
     }
 

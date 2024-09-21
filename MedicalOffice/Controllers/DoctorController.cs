@@ -78,6 +78,8 @@ namespace MedicalOffice.Controllers
             return View(doctor);
         }
 
+       
+
         // GET: Doctor/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -93,6 +95,8 @@ namespace MedicalOffice.Controllers
             }
             return View(doctor);
         }
+
+       
 
         // POST: Doctor/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
