@@ -11,9 +11,42 @@ namespace MedicalOffice.Data
             using (var context = new MedicalOfficeContext(
                 serviceProvider.GetRequiredService<DbContextOptions<MedicalOfficeContext>>()))
             {
+                #region Prepare the Database
+                try
+                {
+                    //If using Migrations
+                    context.Database.EnsureDeleted(); //Delete the existing version
+                    context.Database.Migrate(); //Apply all migrations
+
+                    //If NOT using Migrations
+                    //context.Database.EnsureDeleted(); //Delete the existing version
+                    //context.Database.EnsureCreated(); //Create and update the database as per the model
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.GetBaseException().Message);
+                }
+                #endregion
                 try
                 {
                     //Seed Data
+
+                    //Add some Medical Trials
+                    if (!context.MedicalTrials.Any())
+                    {
+                        context.MedicalTrials.AddRange(
+                         new MedicalTrial
+                         {
+                             TrialName = "UOT - Lukemia Treatment"
+                         }, new MedicalTrial
+                         {
+                             TrialName = "HyGIeaCare Center -  Microbiome Analysis of Constipated Versus Non-constipation Patients"
+                         }, new MedicalTrial
+                         {
+                             TrialName = "TUK - Hair Loss Treatment"
+                         });
+                        context.SaveChanges();
+                    }
                     // Look for any Doctors.  Since we can't have patients without Doctors.
                     if (!context.Doctors.Any())
                     {
@@ -51,6 +84,7 @@ namespace MedicalOffice.Data
                             ExpYrVisits = 6,
                             Phone = "9055551212",
                             Email = "fflintstone@outlook.com",
+                            MedicalTrialID = context.MedicalTrials.FirstOrDefault(d => d.TrialName.Contains("UOT")).ID,
                             DoctorID = context.Doctors.FirstOrDefault(static d => d.FirstName == "Gregory" && d.LastName == "House").ID
                         },
                         new Patient
@@ -75,6 +109,7 @@ namespace MedicalOffice.Data
                             Phone = "9055551213",
                             Email = "brubble@outlook.com",
                             Coverage = Coverage.OHIP,
+                            MedicalTrialID = context.MedicalTrials.FirstOrDefault(d => d.TrialName.Contains("HyGIeaCare")).ID,
                             DoctorID = context.Doctors.FirstOrDefault(d => d.FirstName == "Doogie" && d.LastName == "Houser").ID
                         },
                         new Patient

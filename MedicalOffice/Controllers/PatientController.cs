@@ -24,24 +24,8 @@ namespace MedicalOffice.Controllers
         {
             var patients = _context.Patients
                 .Include(p => p.Doctor)
+                .Include(p => p.MedicalTrial)
                 .AsNoTracking();
-
-            //var patients = from p in _context.Patients
-            //               join d in _context.Doctors on p.DoctorID equals d.ID
-            //               select new Patient
-            //               {
-            //                   ID = p.ID,
-            //                   OHIP = p.OHIP,
-            //                   FirstName = p.FirstName,
-            //                   MiddleName = p.MiddleName,
-            //                   LastName = p.LastName,
-            //                   DOB = p.DOB,
-            //                   ExpYrVisits = p.ExpYrVisits,
-            //                   Phone = p.Phone,
-            //                   Email = p.Email,
-            //                   DoctorID = p.DoctorID,
-            //                   Doctor = d
-            //               };
 
             return View(await patients.ToListAsync());
         }
@@ -56,6 +40,7 @@ namespace MedicalOffice.Controllers
 
             var patient = await _context.Patients
                 .Include(p => p.Doctor)
+                .Include(p => p.MedicalTrial)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (patient == null)
@@ -70,19 +55,15 @@ namespace MedicalOffice.Controllers
         public IActionResult Create()
         {
             PopulateDropDownLists();
-            //ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName");
             return View();
         }
 
         // POST: Patient/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OHIP,FirstName,MiddleName,LastName,DOB,ExpYrVisits,Phone,Email,Coverage,DoctorID")] Patient patient)
+        public async Task<IActionResult> Create([Bind("OHIP,FirstName,MiddleName,LastName,DOB," +
+            "ExpYrVisits,Phone,Email,Coverage,MedicalTrialID,DoctorID")] Patient patient)
         {
-
-            //wrapping in try catch for database exceptions
             try
             {
                 if (ModelState.IsValid)
@@ -94,19 +75,22 @@ namespace MedicalOffice.Controllers
             }
             catch (DbUpdateException dex)
             {
-                if (dex.GetBaseException().Message.Contains("UNIQUE constraint failed: Patients.OHIP"))
+                string message = dex.GetBaseException().Message;
+                if (message.Contains("UNIQUE") && message.Contains("Patients.OHIP"))
                 {
                     ModelState.AddModelError("OHIP", "Unable to save changes. Remember, you cannot have duplicate OHIP numbers.");
                 }
+                else if (message.Contains("UNIQUE") && message.Contains("Patients.DOB"))
+                {
+                    ModelState.AddModelError("", "Unable to save changes. Remember, you cannot have duplicate Names and Date of Birth.");
+                }
                 else
                 {
-                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
                 }
             }
 
-          
             PopulateDropDownLists(patient);
-           // ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName", patient.DoctorID);
             return View(patient);
         }
 
@@ -124,35 +108,24 @@ namespace MedicalOffice.Controllers
                 return NotFound();
             }
             PopulateDropDownLists();
-            //ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName", patient.DoctorID);
             return View(patient);
         }
 
         // POST: Patient/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id)
         {
-
-            //Go get the patient to update
             var patientToUpdate = await _context.Patients.FirstOrDefaultAsync(p => p.ID == id);
-
-            //check that you got it or exit with a not found error
-
             if (patientToUpdate == null)
             {
                 return NotFound();
             }
 
-            //Try updating it with the values posted
-
             if (await TryUpdateModelAsync<Patient>(patientToUpdate, "",
-             p => p.OHIP, p => p.FirstName, p => p.MiddleName, p => p.LastName, p => p.DOB,
-             p => p.ExpYrVisits, p => p.Phone, p => p.Email, p => p.Coverage, p => p.DoctorID))
-
-                {
+                p => p.OHIP, p => p.FirstName, p => p.MiddleName, p => p.LastName, p => p.DOB,
+                p => p.ExpYrVisits, p => p.Phone, p => p.Email, p => p.Coverage, p => p.MedicalTrialID,p => p.DoctorID))
+            {
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -171,19 +144,23 @@ namespace MedicalOffice.Controllers
                 }
                 catch (DbUpdateException dex)
                 {
-                    if (dex.GetBaseException().Message.Contains("UNIQUE constraint failed: Patients.OHIP"))
+                    string message = dex.GetBaseException().Message;
+                    if (message.Contains("UNIQUE") && message.Contains("Patients.OHIP"))
                     {
                         ModelState.AddModelError("OHIP", "Unable to save changes. Remember, you cannot have duplicate OHIP numbers.");
                     }
+                    else if (message.Contains("UNIQUE") && message.Contains("Patients.DOB"))
+                    {
+                        ModelState.AddModelError("", "Unable to save changes. Remember, you cannot have duplicate Names and Date of Birth.");
+                    }
                     else
                     {
-                        ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
+                        ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
                     }
                 }
-
             }
+
             PopulateDropDownLists(patientToUpdate);
-            //ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName", patient.DoctorID);
             return View(patientToUpdate);
         }
 
@@ -197,6 +174,7 @@ namespace MedicalOffice.Controllers
 
             var patient = await _context.Patients
                 .Include(p => p.Doctor)
+                .Include(p => p.MedicalTrial)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (patient == null)
@@ -212,38 +190,51 @@ namespace MedicalOffice.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-
             var patient = await _context.Patients
                 .Include(p => p.Doctor)
+                .Include (p => p.MedicalTrial)
                 .FirstOrDefaultAsync(m => m.ID == id);
 
             try
             {
-
                 if (patient != null)
                 {
                     _context.Patients.Remove(patient);
+                    await _context.SaveChangesAsync();
                 }
-
-                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException)
             {
-                //Note: there is really no reason a delete should fail if you can "talk" to the database.
-                ModelState.AddModelError("", "Unable to delete record. Try again, and if the problem persists contact your system administrator");
+                ModelState.AddModelError("", "Unable to delete record. Try again, and if the problem persists, contact your system administrator.");
             }
+
             return View(patient);
+        }
 
+        //This is a twist on the PopulateDropDownLists approach
+        //  Create methods that return each SelectList separately
+        //  and one method to put them all into ViewData.
+        //This approach allows for AJAX requests to refresh
+        //DDL Data at a later date.
+        private SelectList DoctorSelectList(int? selectedId)
+        {
+            return new SelectList(_context.Doctors
+                .OrderBy(d => d.LastName)
+                .ThenBy(d => d.FirstName), "ID", "FormalName", selectedId);
+        }
 
+        private SelectList MedicalTrialList(int? selectedId)
+        {
+            return new SelectList(_context
+                .MedicalTrials
+                .OrderBy(m => m.TrialName), "ID", "TrialName", selectedId);
         }
 
         private void PopulateDropDownLists(Patient? patient = null)
         {
-            var dQuery = from d in _context.Doctors
-                         orderby d.LastName, d.FirstName
-                         select d;
-            ViewData["DoctorID"] = new SelectList(dQuery, "ID", "FormalName", patient?.DoctorID);
+            ViewData["DoctorID"] = DoctorSelectList(patient?.DoctorID);
+            ViewData["MedicalTrialID"] = MedicalTrialList(patient?.MedicalTrialID);
         }
 
         private bool PatientExists(int id)

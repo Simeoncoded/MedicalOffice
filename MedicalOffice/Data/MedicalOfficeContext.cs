@@ -14,6 +14,8 @@ namespace MedicalOffice.Data
 
         public DbSet<Patient> Patients { get; set; }
 
+        public DbSet<MedicalTrial> MedicalTrials { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //prevent cascade delete from doctor to patient
@@ -31,7 +33,12 @@ namespace MedicalOffice.Data
                 .IsUnique();
     
             //To deal with multiple births among our patients
-            //add a unique index to t
+            //add a unique index to the combination
+            //of DOB, Last and First Names
+            modelBuilder.Entity<Patient>()
+            .HasIndex(p => new { p.DOB, p.LastName, p.FirstName}).
+            IsUnique();
+
         }
     }
 

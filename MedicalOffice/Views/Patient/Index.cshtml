@@ -20,7 +20,7 @@
                 @Html.DisplayNameFor(model => model.Age)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.PhoneFormatted)
+                @Html.DisplayNameFor(model => model.MedicalTrial)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Email)
@@ -44,7 +44,17 @@
                 @Html.DisplayFor(modelItem => item.Age)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.PhoneFormatted)
+                    @{  
+                        if(item.MedicalTrialID != null)
+                        {
+                            <a href="#" data-bs-toggle="tooltip" title="@item.MedicalTrial.TrialName">Yes</a>
+                        }
+                        else
+                        {
+                            @:No
+                        }
+                    }
+
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Email)
@@ -64,3 +74,12 @@
 }
     </tbody>
 </table>
+
+@section Scripts {
+    <script type="text/javascript">
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+}

@@ -65,6 +65,14 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Coverage)
         </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.MedicalTrial)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.MedicalTrial.TrialName)
+        </dd>
+
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Doctor)
         </dt>

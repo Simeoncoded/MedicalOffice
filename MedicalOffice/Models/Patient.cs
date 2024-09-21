@@ -86,6 +86,12 @@ namespace MedicalOffice.Models
         [Required(ErrorMessage ="You must select the Patient's Health Coverage!")]
         public Coverage Coverage { get; set; }
 
+        [Display(Name = "Medical Trial")]
+        public int? MedicalTrialID { get; set; }
+
+        [Display(Name = "Medical Trial")]
+        public MedicalTrial? MedicalTrial { get; set; }
+
         [Required(ErrorMessage ="You must select a Primary Care Physician.")]
         [Display(Name = "Doctor")]
         public int DoctorID { get; set; }
