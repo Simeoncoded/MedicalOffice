@@ -17,6 +17,22 @@ namespace MedicalOffice.Data.MOMigrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
 
+            modelBuilder.Entity("MedicalOffice.Models.Condition", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ConditionName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Conditions");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Doctor", b =>
                 {
                     b.Property<int>("ID")
@@ -121,6 +137,21 @@ namespace MedicalOffice.Data.MOMigrations
                     b.ToTable("Patients");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.PatientCondition", b =>
+                {
+                    b.Property<int>("ConditionID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PatientID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ConditionID", "PatientID");
+
+                    b.HasIndex("PatientID");
+
+                    b.ToTable("PatientConditions");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Patient", b =>
                 {
                     b.HasOne("MedicalOffice.Models.Doctor", "Doctor")
@@ -138,6 +169,30 @@ namespace MedicalOffice.Data.MOMigrations
                     b.Navigation("MedicalTrial");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.PatientCondition", b =>
+                {
+                    b.HasOne("MedicalOffice.Models.Condition", "Condition")
+                        .WithMany("PatientConditions")
+                        .HasForeignKey("ConditionID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MedicalOffice.Models.Patient", "Patient")
+                        .WithMany("PatientConditions")
+                        .HasForeignKey("PatientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Condition");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.Condition", b =>
+                {
+                    b.Navigation("PatientConditions");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Doctor", b =>
                 {
                     b.Navigation("Patients");
@@ -146,6 +201,11 @@ namespace MedicalOffice.Data.MOMigrations
             modelBuilder.Entity("MedicalOffice.Models.MedicalTrial", b =>
                 {
                     b.Navigation("Patients");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.Patient", b =>
+                {
+                    b.Navigation("PatientConditions");
                 });
 #pragma warning restore 612, 618
         }

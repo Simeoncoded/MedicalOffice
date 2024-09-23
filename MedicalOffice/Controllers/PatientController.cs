@@ -25,6 +25,7 @@ namespace MedicalOffice.Controllers
             var patients = _context.Patients
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
+                .Include(p => p.PatientConditions).ThenInclude(pc=>pc.Condition)
                 .AsNoTracking();
 
             return View(await patients.ToListAsync());
@@ -41,6 +42,7 @@ namespace MedicalOffice.Controllers
             var patient = await _context.Patients
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
+                .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (patient == null)
@@ -175,6 +177,7 @@ namespace MedicalOffice.Controllers
             var patient = await _context.Patients
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
+                .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (patient == null)
@@ -193,6 +196,7 @@ namespace MedicalOffice.Controllers
             var patient = await _context.Patients
                 .Include(p => p.Doctor)
                 .Include (p => p.MedicalTrial)
+                .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
                 .FirstOrDefaultAsync(m => m.ID == id);
 
             try

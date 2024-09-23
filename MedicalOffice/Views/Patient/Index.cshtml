@@ -26,6 +26,9 @@
                 @Html.DisplayNameFor(model => model.Coverage)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.PatientConditions)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Doctor)
             </th>
             <th></th>
@@ -56,6 +59,13 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Coverage)
             </td>
+
+              <td>
+                   @foreach (var c in item.PatientConditions)
+                    {
+                        @c.Condition.ConditionName <br />
+                    }
+               </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Doctor.Summary)
             </td>

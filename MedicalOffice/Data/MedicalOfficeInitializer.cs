@@ -50,7 +50,7 @@ namespace MedicalOffice.Data
                 #endregion
 
                 //Seed data needed for production and during development
-                #region Seed Required Data
+                    #region Seed Required Data
                 try
                 {
                     //Add some Medical Trials
@@ -73,6 +73,21 @@ namespace MedicalOffice.Data
                          {
                              TrialName = "TUK - Hair Loss Treatment"
                          });
+                        context.SaveChanges();
+                    }
+                    //Conditions - Needed for production and during development
+                    if (!context.Conditions.Any())
+                    {
+                        string[] conditions = new string[] { "Asthma", "Cancer", "Cardiac disease", "Diabetes", "Hypertension", "Seizure disorder", "Circulation problems", "Bleeding disorder", "Thyroid condition", "Liver Disease", "Measles", "Mumps" };
+
+                        foreach (string condition in conditions)
+                        {
+                            Condition c = new Condition
+                            {
+                                ConditionName = condition
+                            };
+                            context.Conditions.Add(c);
+                        }
                         context.SaveChanges();
                     }
                 }
@@ -167,6 +182,26 @@ namespace MedicalOffice.Data
                                 Coverage = Coverage.OutofProvince,
                                 DoctorID = context.Doctors.FirstOrDefault(d => d.FirstName == "Charles" && d.LastName == "Xavier").ID
                             });
+                            context.SaveChanges();
+                        }
+                        if (!context.PatientConditions.Any())
+                        {
+                            context.PatientConditions.AddRange(
+                                new PatientCondition
+                                {
+                                    ConditionID = context.Conditions.FirstOrDefault(c => c.ConditionName == "Cancer").ID,
+                                    PatientID = context.Patients.FirstOrDefault(p => p.LastName == "Flintstone" && p.FirstName == "Fred").ID
+                                },
+                                new PatientCondition
+                                {
+                                    ConditionID = context.Conditions.FirstOrDefault(c => c.ConditionName == "Cardiac disease").ID,
+                                    PatientID = context.Patients.FirstOrDefault(p => p.LastName == "Flintstone" && p.FirstName == "Fred").ID
+                                },
+                                new PatientCondition
+                                {
+                                    ConditionID = context.Conditions.FirstOrDefault(c => c.ConditionName == "Diabetes").ID,
+                                    PatientID = context.Patients.FirstOrDefault(p => p.LastName == "Flintstone" && p.FirstName == "Wilma").ID
+                                });
                             context.SaveChanges();
                         }
                     }

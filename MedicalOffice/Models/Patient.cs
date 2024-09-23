@@ -98,6 +98,10 @@ namespace MedicalOffice.Models
         
         public Doctor? Doctor { get; set; }
 
+
+        [Display(Name = "History")]
+        public ICollection<PatientCondition> PatientConditions { get; set; } = new HashSet<PatientCondition>();
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
            //The second argument (memberNames) is a IEnumerable<string> that 

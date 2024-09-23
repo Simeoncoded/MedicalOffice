@@ -11,11 +11,10 @@ namespace MedicalOffice.Data
         }
 
         public DbSet<Doctor> Doctors { get; set; }
-
         public DbSet<Patient> Patients { get; set; }
-
         public DbSet<MedicalTrial> MedicalTrials { get; set; }
-
+        public DbSet<PatientCondition> PatientConditions { get; set; }
+        public DbSet<Condition> Conditions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //prevent cascade delete from doctor to patient
@@ -27,11 +26,25 @@ namespace MedicalOffice.Data
                     .HasForeignKey(p => p.DoctorID)
                     .OnDelete(DeleteBehavior.Restrict);
 
+            //Add this so we are prevented from deleting a Condition
+            //that is in a Patients history of  PatientConditions.
+            //Note: Allow Cascade Delete from Patient to PatientCondition
+            modelBuilder.Entity<PatientCondition>()
+                .HasOne(pc => pc.Condition)
+                .WithMany(c => c.PatientConditions)
+                .HasForeignKey(pc => pc.ConditionID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             //Add a unique index to the OHIP Number
             modelBuilder.Entity<Patient>()
                 .HasIndex(p => p.OHIP)
                 .IsUnique();
-    
+
+            //Many to Many Intersection
+            modelBuilder.Entity<PatientCondition>()
+            .HasKey(t => new { t.ConditionID, t.PatientID });
+
+
             //To deal with multiple births among our patients
             //add a unique index to the combination
             //of DOB, Last and First Names
