@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MedicalOffice.Data;
 using MedicalOffice.Models;
+using MedicalOffice.ViewModels;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MedicalOffice.Controllers
 {
@@ -56,6 +58,9 @@ namespace MedicalOffice.Controllers
         // GET: Patient/Create
         public IActionResult Create()
         {
+            Patient patient = new Patient();
+            PopulateAssignedConditionData(patient); 
+
             PopulateDropDownLists();
             return View();
         }
@@ -64,16 +69,31 @@ namespace MedicalOffice.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("OHIP,FirstName,MiddleName,LastName,DOB," +
-            "ExpYrVisits,Phone,Email,Coverage,MedicalTrialID,DoctorID")] Patient patient)
+            "ExpYrVisits,Phone,Email,Coverage,MedicalTrialID,DoctorID")] Patient patient, string[] selectedOptions)
         {
             try
             {
+                //Add the selected conditions
+                if (selectedOptions != null)
+                {
+                    foreach (var condition in selectedOptions)
+                    {
+                        var conditionToAdd = new PatientCondition { PatientID = patient.ID, ConditionID = int.Parse(condition) };
+                        patient.PatientConditions.Add(conditionToAdd);
+                    }
+                }
+
                 if (ModelState.IsValid)
                 {
                     _context.Add(patient);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
+            }
+            catch (RetryLimitExceededException /* dex */)//This is a Transaction in the Database!
+            {
+                ModelState.AddModelError("", "Unable to save changes after multiple attempts. " +
+                    "Try again, and if the problem persists, see your system administrator.");
             }
             catch (DbUpdateException dex)
             {
@@ -91,7 +111,7 @@ namespace MedicalOffice.Controllers
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
                 }
             }
-
+            PopulateAssignedConditionData(patient);
             PopulateDropDownLists(patient);
             return View(patient);
         }
@@ -104,11 +124,14 @@ namespace MedicalOffice.Controllers
                 return NotFound();
             }
 
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients
+                .Include(p => p.PatientConditions).ThenInclude(p => p.Condition)
+                .FirstOrDefaultAsync(p => p.ID == id);
             if (patient == null)
             {
                 return NotFound();
             }
+            PopulateAssignedConditionData(patient);
             PopulateDropDownLists();
             return View(patient);
         }
@@ -116,13 +139,18 @@ namespace MedicalOffice.Controllers
         // POST: Patient/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, string[] selectedOptions)
         {
-            var patientToUpdate = await _context.Patients.FirstOrDefaultAsync(p => p.ID == id);
+            var patientToUpdate = await _context.Patients
+                .Include(p => p.PatientConditions).ThenInclude(p => p.Condition)
+                .FirstOrDefaultAsync(p => p.ID == id);
             if (patientToUpdate == null)
             {
                 return NotFound();
             }
+
+            //Update the medical history
+            UpdatePatientConditions(selectedOptions, patientToUpdate);
 
             if (await TryUpdateModelAsync<Patient>(patientToUpdate, "",
                 p => p.OHIP, p => p.FirstName, p => p.MiddleName, p => p.LastName, p => p.DOB,
@@ -239,6 +267,71 @@ namespace MedicalOffice.Controllers
         {
             ViewData["DoctorID"] = DoctorSelectList(patient?.DoctorID);
             ViewData["MedicalTrialID"] = MedicalTrialList(patient?.MedicalTrialID);
+        }
+
+        /// <summary>
+        /// Prepare a colleciton of check box ViewModel objects, one for each
+        /// condition.  Set Assigned to True for those already in the Patient's
+        /// medical history.
+        /// </summary>
+        /// <param name="patient">the Patient</param>
+        private void PopulateAssignedConditionData(Patient patient)
+        {
+            //For this to work, you must have Included the PatientConditions 
+            //in the Patient
+            var allOptions = _context.Conditions;
+            var currentOptionIDs = new HashSet<int>(patient.PatientConditions.Select(b => b.ConditionID));
+            var checkBoxes = new List<CheckOptionVM>();
+            foreach (var option in allOptions)
+            {
+                checkBoxes.Add(new CheckOptionVM
+                {
+                    ID = option.ID,
+                    DisplayText = option.ConditionName,
+                    Assigned = currentOptionIDs.Contains(option.ID)
+                });
+            }
+            ViewData["ConditionOptions"] = checkBoxes;
+        }
+
+        /// <summary>
+        /// Update the PatientConditions for the Patient to match
+        /// the selected Check Boxes.
+        /// </summary>
+        /// <param name="selectedOptions">ID's of the selected options</param>
+        /// <param name="patientToUpdate">the Patient</param>
+        private void UpdatePatientConditions(string[] selectedOptions, Patient patientToUpdate)
+        {
+            if (selectedOptions == null)
+            {
+                //replace with a new empty collection
+                patientToUpdate.PatientConditions = new List<PatientCondition>();
+                return;
+            }
+
+            var selectedOptionsHS = new HashSet<string>(selectedOptions);
+            var patientOptionsHS = new HashSet<int>
+                (patientToUpdate.PatientConditions.Select(c => c.ConditionID));//IDs of the currently selected conditions
+            foreach (var option in _context.Conditions)
+            {
+                if (selectedOptionsHS.Contains(option.ID.ToString())) //It is checked
+                {
+                    if (!patientOptionsHS.Contains(option.ID))  //but not currently in the history
+                    {
+                        patientToUpdate.PatientConditions.Add(new PatientCondition { PatientID = patientToUpdate.ID, ConditionID = option.ID });
+                    }
+                }
+                else
+                {
+                    //Checkbox Not checked
+                    if (patientOptionsHS.Contains(option.ID)) //but it is currently in the history - so remove it
+                    {
+                        PatientCondition conditionToRemove = patientToUpdate
+                            .PatientConditions.SingleOrDefault(c => c.ConditionID == option.ID);
+                        _context.Remove(conditionToRemove);
+                    }
+                }
+            }
         }
 
         private bool PatientExists(int id)
