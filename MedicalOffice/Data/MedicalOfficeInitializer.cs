@@ -90,6 +90,20 @@ namespace MedicalOffice.Data
                         }
                         context.SaveChanges();
                     }
+                    //Seed Specialties for Doctors
+                    string[] specialties = new string[] { "Abdominal Radiology", "Addiction Psychiatry", "Adolescent Medicine Pediatrics", "Cardiothoracic Anesthesiology", "Adult Reconstructive Orthopaedics", "Advanced Heart Failure ", "Allergy & Immunology ", "Anesthesiology ", "Biochemical Genetics", "Blood Banking ", "Cardiothoracic Radiology", "Cardiovascular Disease Internal Medicine", "Chemical Pathology", "Child & Adolescent Psychiatry", "Child Abuse Pediatrics", "Child Neurology", "Clinical & Laboratory Immunology", "Clinical Cardiac Electrophysiology", "Clinical Neurophysiology Neurology", "Colon & Rectal Surgery ", "Congenital Cardiac Surgery", "Craniofacial Surgery", "Critical Care Medicine", "Cytopathology ", "Dermatology ", "Dermatopathology ", "Family Medicine ", "Family Practice", "Female Pelvic Medicine", "Foot & Ankle Orthopaedics", "Forensic Pathology", "Forensic Psychiatry ", "Hand Surgery", "Hematology Pathology", "Oncology ", "Infectious Disease", "Internal Medicine ", "Interventional Cardiology", "Neonatal-Perinatal Medicine", "Nephrology Internal Medicine", "Neurological Surgery ", "Neurology ", "Neuromuscular Medicine", "Neuropathology Pathology", "Nuclear Medicine ", "Nuclear Radiology", "Obstetric Anesthesiology", "Obstetrics & Gynecology ", "Ophthalmic Plastic", "Ophthalmology ", "Orthopaedic Sports Medicine", "Orthopaedic Surgery ", "Otolaryngology ", "Otology", "Pediatrics ", "Plastic Surgery ", "Preventive Medicine ", "Radiation Oncology ", "Rheumatology", "Vascular & Interventional Radiology", "Vascular Surgery", "Integrated Thoracic Surgery", "Transplant Hepatology", "Urology" };
+                    if (!context.Specialties.Any())
+                    {
+                        foreach (string s in specialties)
+                        {
+                            Specialty sp = new Specialty
+                            {
+                                SpecialtyName = s
+                            };
+                            context.Specialties.Add(sp);
+                        }
+                        context.SaveChanges();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -311,6 +325,40 @@ namespace MedicalOffice.Data
                             //raw SQL through our DbContext.
                             string cmd = "DELETE FROM Doctors WHERE NOT EXISTS(SELECT 1 FROM Patients WHERE Doctors.Id = Patients.DoctorID)";
                             context.Database.ExecuteSqlRaw(cmd);
+                        }
+                        //Put this after you have added Doctors.
+                        //Make sure we have the array of Doctor primary keys.
+                        doctorIDs = context.Doctors.Select(a => a.ID).ToArray();
+                        doctorIDCount = doctorIDs.Length;
+
+                        //Create collection of the primary keys of the Specialties
+                        int[] specialtyIDs = context.Specialties.Select(s => s.ID).ToArray();
+                        int specialtyIDCount = specialtyIDs.Length;
+
+                        //DoctorSpecialties - the Intersection
+                        //Add a few specialties to each Doctor
+                        if (!context.DoctorSpecialties.Any())
+                        {
+                            //i loops through the primary keys of the Doctors
+                            //j is just a counter so we add some Specialities to a Doctor
+                            //k lets us step through all Specialties so we can make sure each gets used
+                            int k = 0;//Start with the first Specialty
+                            foreach (int i in doctorIDs)
+                            {
+                                int howMany = random.Next(1, 10);//Add up to 10 specialties
+                                for (int j = 1; j <= howMany; j++)
+                                {
+                                    k = (k >= specialtyIDCount) ? 0 : k;//Resets counter k to 0 if we have run out of Specialties
+                                    DoctorSpecialty ds = new DoctorSpecialty()
+                                    {
+                                        DoctorID = i,
+                                        SpecialtyID = specialtyIDs[k]
+                                    };
+                                    k++;
+                                    context.DoctorSpecialties.Add(ds);
+                                }
+                                context.SaveChanges();
+                            }
                         }
 
                     }

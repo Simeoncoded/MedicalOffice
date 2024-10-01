@@ -171,7 +171,7 @@ namespace MedicalOffice.Controllers
             try
             {
                 
-                if (doctor != null)
+                if (doctor != null) 
                 {
                     _context.Doctors.Remove(doctor);
                 }
@@ -191,9 +191,7 @@ namespace MedicalOffice.Controllers
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if problem persists please contact your system administrator");
                 }
             }
-            return View(doctor);
-        
-            
+            return View(doctor); 
         }
 
         private bool DoctorExists(int id)
