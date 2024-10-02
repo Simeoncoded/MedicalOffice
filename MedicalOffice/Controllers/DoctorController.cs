@@ -23,6 +23,7 @@ namespace MedicalOffice.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Doctors
+                .Include(d=>d.DoctorSpecialties).ThenInclude(d=>d.Specialty)
                 .AsNoTracking()
                 .ToListAsync());
         }
@@ -36,6 +37,9 @@ namespace MedicalOffice.Controllers
             }
 
             var doctor = await _context.Doctors
+                .Include(d => d.Patients)
+                 .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (doctor == null)
             {
@@ -151,6 +155,7 @@ namespace MedicalOffice.Controllers
             }
 
             var doctor = await _context.Doctors
+                 .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (doctor == null)
@@ -166,8 +171,11 @@ namespace MedicalOffice.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var doctor = await _context.Doctors.FindAsync(id);
 
+            var doctor = await _context.Doctors
+                 .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+                 .FirstOrDefaultAsync(m => m.ID == id);
+             
             try
             {
                 

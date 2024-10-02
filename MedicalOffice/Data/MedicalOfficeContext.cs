@@ -45,6 +45,7 @@ namespace MedicalOffice.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+
             //Add a unique index to the OHIP Number
             modelBuilder.Entity<Patient>()
                 .HasIndex(p => p.OHIP)
