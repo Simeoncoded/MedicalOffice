@@ -60,38 +60,6 @@
                 }
             }
         </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.DoctorSpecialties)
-        </dt>
-        <dd class="col-sm-10">
-            @{
-                int specCount = Model.DoctorSpecialties.Count;
-                if (specCount > 0)
-                {
-                    string firstSpec = Model.DoctorSpecialties.FirstOrDefault().Specialty.SpecialtyName;
-                    if (specCount > 1)
-                    {
-                        string specList = "";//Html string of specialty names separated by <br /> tags
-                        var s = Model.DoctorSpecialties.ToList();
-                        for (int i = 1; i < specCount; i++)//Skip the first because we have it already
-                        {
-                            specList += s[i].Specialty.SpecialtyName + " <br />";
-                        }
-                        <a class="" role="button" data-bs-toggle="collapse" href="#collapseSpecalty@(Model.ID)"
-                           aria-expanded="false" aria-controls="collapseSpecalty@(Model.ID)">
-                            @firstSpec <span class="badge bg-info">@specCount</span>
-                        </a>
-                        <div class="collapse" id="collapseSpecalty@(Model.ID)">
-                            @Html.Raw(specList)
-                        </div>
-                    }
-                    else
-                    {
-                        @firstSpec
-                    }
-                }
-            }
-        </dd>
     </dl>
 </div>
 <div>
