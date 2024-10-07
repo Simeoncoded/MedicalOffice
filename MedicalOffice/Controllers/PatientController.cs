@@ -22,9 +22,21 @@ namespace MedicalOffice.Controllers
         }
 
         // GET: Patient
-        public async Task<IActionResult> Index(string? SearchString, int? DoctorID, int? MedicalTrialID)
+        public async Task<IActionResult> Index(string? SearchString, int? DoctorID, 
+            int? MedicalTrialID, int? ConditionID)
         {
+
+            //Count the number of filters applied - start by assuming no filters
+            ViewData["Filtering"] = "btn-outline-secondary";
+            int numberFilters = 0;
+            //Then in each "test" for filtering, add to the count of Filters applied
+
             PopulateDropDownLists(); //data for doctor and medicaltrial filter
+
+            //Extra Select List for Conditions
+            ViewData["ConditionID"] = new SelectList(_context
+                .Conditions
+                .OrderBy(c => c.ConditionName), "ID", "ConditionName");
 
             var patients = _context.Patients
                 .Include(p => p.Doctor)
@@ -36,17 +48,36 @@ namespace MedicalOffice.Controllers
             if (DoctorID.HasValue)
             {
                 patients = patients.Where(p => p.DoctorID == DoctorID);
+                numberFilters++;
             }
             if (MedicalTrialID.HasValue)
             {
                 patients = patients.Where(p => p.MedicalTrialID == MedicalTrialID);
+                numberFilters++;
             }
             if (!String.IsNullOrEmpty(SearchString))
             {
                 patients = patients.Where(p => p.LastName.ToUpper().Contains(SearchString.ToUpper())
                                        || p.FirstName.ToUpper().Contains(SearchString.ToUpper()));
+                numberFilters++;
+            }
+            if (ConditionID.HasValue)
+            {
+                patients = patients.Where(p => p.PatientConditions.Any(c => c.ConditionID == ConditionID));
+                numberFilters++;
             }
 
+            if (numberFilters != 0)
+            {
+                //Toggle the Open/Closed state of the collapse depending on if we are filtering
+                ViewData["Filtering"] = " btn-danger";
+                //Show how many filters have been applied
+                ViewData["numberFilters"] = "(" + numberFilters.ToString()
+                    + " Filter" + (numberFilters > 1 ? "s" : "") + " Applied)";
+
+                //Keep the Bootstrap collapse open
+                @ViewData["ShowFilter"] = " show";
+            }
 
             return View(await patients.ToListAsync());
         }

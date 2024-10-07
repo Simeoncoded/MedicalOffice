@@ -15,16 +15,24 @@
         <button class="btn @ViewData["Filtering"]" type="button" data-bs-toggle="collapse" id="filterToggle" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
             Filter/Search @ViewData["numberFilters"]
         </button><br />
-        <div class="collapse" id="collapseFilter">
+        <div class="collapse @ViewData["ShowFilter"]" id="collapseFilter">
             <div class="card card-body bg-light">
                 <div class="row">
                     <div class="form-group col-md-4">
                         <label class="control-label">Select by Doctor:</label>
                         @Html.DropDownList("DoctorID", null, "All Doctors", htmlAttributes: new { @class = "form-control" })
                     </div>
-                    <div class="form-group col-md-4">
+                    <div class="form-group col-md-6">
                         <label class="control-label">Filter by Medical Trial:</label>
                         @Html.DropDownList("MedicalTrialID", null, "None", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Filter by Condition:</label>
+                            @Html.DropDownList("ConditionID", null, "All Conditions", htmlAttributes: new { @class = "form-control" })
+                        </div>
                     </div>
                     <div class="form-group col-md-4">
                         <label class="control-label">Search Patient Name:</label>
@@ -36,6 +44,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
