@@ -22,13 +22,31 @@ namespace MedicalOffice.Controllers
         }
 
         // GET: Patient
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? SearchString, int? DoctorID, int? MedicalTrialID)
         {
+            PopulateDropDownLists(); //data for doctor and medicaltrial filter
+
             var patients = _context.Patients
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
                 .Include(p => p.PatientConditions).ThenInclude(pc=>pc.Condition)
                 .AsNoTracking();
+
+            //Add as many filters as needed
+            if (DoctorID.HasValue)
+            {
+                patients = patients.Where(p => p.DoctorID == DoctorID);
+            }
+            if (MedicalTrialID.HasValue)
+            {
+                patients = patients.Where(p => p.MedicalTrialID == MedicalTrialID);
+            }
+            if (!String.IsNullOrEmpty(SearchString))
+            {
+                patients = patients.Where(p => p.LastName.ToUpper().Contains(SearchString.ToUpper())
+                                       || p.FirstName.ToUpper().Contains(SearchString.ToUpper()));
+            }
+
 
             return View(await patients.ToListAsync());
         }
