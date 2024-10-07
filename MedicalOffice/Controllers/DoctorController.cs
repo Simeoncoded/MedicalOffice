@@ -10,10 +10,11 @@ using MedicalOffice.Models;
 using MedicalOffice.ViewModels;
 using Microsoft.EntityFrameworkCore.Storage;
 using MedicalOffice.Utilities;
+using MedicalOffice.CustomControllers;
 
 namespace MedicalOffice.Controllers
 {
-    public class DoctorController : Controller
+    public class DoctorController : CognizantController
     {
         private readonly MedicalOfficeContext _context;
 
@@ -30,7 +31,7 @@ namespace MedicalOffice.Controllers
                .AsNoTracking();
 
             //Handle Paging
-            int pageSize = PageSizeHelper.SetPageSize(HttpContext, pageSizeID);
+            int pageSize = PageSizeHelper.SetPageSize(HttpContext, pageSizeID, ControllerName());
             ViewData["pageSizeID"] = PageSizeHelper.PageSizeList(pageSize);
 
             var pagedData = await PaginatedList<Doctor>.CreateAsync(doctors.AsNoTracking(), page ?? 1, pageSize);
