@@ -9,8 +9,9 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-</p>
 <form asp-action="Index" method="get">
+    <input type="hidden" name="sortDirection" value="@ViewData["sortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["sortField"]" />
     <div class="form-horizontal">
         <button class="btn @ViewData["Filtering"]" type="button" data-bs-toggle="collapse" id="filterToggle" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
             Filter/Search @ViewData["numberFilters"]
@@ -53,22 +54,22 @@
             <tr>
 
                 <th>
-                    @Html.DisplayNameFor(model => model.Summary)
+                    <input type="submit" name="actionButton" value="Patient" class="btn btn-link" />
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Age)
+                    <input type="submit" name="actionButton" value="Age" class="btn btn-link" />
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.MedicalTrial)
+                    <input type="submit" value="Medical Trial" class="btn btn-toolbar" />
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Coverage)
+                    <input type="submit" name="actionButton" value="Coverage" class="btn btn-link" />
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.PatientConditions)
+                    <input type="submit" value="History" class="btn btn-toolbar" />
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Doctor)
+                    <input type="submit" name="actionButton" value="Doctor" class="btn btn-link" />
                 </th>
                 <th></th>
             </tr>
@@ -101,10 +102,33 @@
                     </td>
 
                     <td>
-                        @foreach (var c in item.PatientConditions)
+                    @{
+                        int condCount = item.PatientConditions.Count;
+                        if (condCount > 0)
                         {
-                            @c.Condition.ConditionName <br />
+                            string firstCond = item.PatientConditions.FirstOrDefault().Condition.ConditionName;
+                            if (condCount > 1)
+                            {
+                                string condList = "";
+                                var c = item.PatientConditions.ToList();
+                                for (int i = 1; i < condCount; i++)//Skip the first because we have it already
+                                {
+                                    condList += c[i].Condition.ConditionName + " <br />";
+                                }
+                                <a class="" role="button" data-bs-toggle="collapse" href="#collapseHistory@(item.ID)"
+                                   aria-expanded="false" aria-controls="collapseHistory@(item.ID)">
+                                    @firstCond <span class="badge bg-info">@condCount</span>
+                                </a>
+                                <div class="collapse" id="collapseHistory@(item.ID)">
+                                    @Html.Raw(condList)
+                                </div>
+                            }
+                            else
+                            {
+                                @firstCond
+                            }
                         }
+                    }
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.Doctor.Summary)

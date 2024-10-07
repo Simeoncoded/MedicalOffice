@@ -23,8 +23,13 @@ namespace MedicalOffice.Controllers
 
         // GET: Patient
         public async Task<IActionResult> Index(string? SearchString, int? DoctorID, 
-            int? MedicalTrialID, int? ConditionID)
+            int? MedicalTrialID, int? ConditionID,
+            string? actionButton, string sortDirection = "asc", string sortField = "Patient"
+)
         {
+            //List of sort options.
+            //NOTE: make sure this array has matching values to the column headings
+            string[] sortOptions = new[] { "Patient", "Age", "Coverage", "Doctor" };
 
             //Count the number of filters applied - start by assuming no filters
             ViewData["Filtering"] = "btn-outline-secondary";
@@ -78,6 +83,90 @@ namespace MedicalOffice.Controllers
                 //Keep the Bootstrap collapse open
                 @ViewData["ShowFilter"] = " show";
             }
+
+            //Before we sort, see if we have called for a change of filtering or sorting
+            if (!String.IsNullOrEmpty(actionButton)) //Form Submitted!
+            {
+                if (sortOptions.Contains(actionButton))//Change of sort is requested
+                {
+                    if (actionButton == sortField) //Reverse order on same field
+                    {
+                        sortDirection = sortDirection == "asc" ? "desc" : "asc";
+                    }
+                    sortField = actionButton;//Sort by the button clicked
+                }
+            }
+
+            //Now we know which field and direction to sort by
+            if (sortField == "Age")
+            {
+                if (sortDirection == "asc")
+                {
+                    patients = patients
+                        .OrderByDescending(p => p.DOB);
+                }
+                else
+                {
+                    patients = patients
+                        .OrderBy(p => p.DOB);
+                }
+            }
+            else if (sortField == "Coverage")
+            {
+                if (sortDirection == "asc")
+                {
+                    patients = patients
+                        .OrderBy(p => p.Coverage)
+                        .ThenBy(p => p.LastName)
+                        .ThenBy(p => p.FirstName);
+                }
+                else
+                {
+                    patients = patients
+                        .OrderByDescending(p => p.Coverage)
+                        .ThenBy(p => p.LastName)
+                        .ThenBy(p => p.FirstName);
+                }
+            }
+            else if (sortField == "Doctor")
+            {
+                if (sortDirection == "asc")
+                {
+                    patients = patients
+                        .OrderBy(p => p.Doctor.LastName)
+                        .ThenBy(p => p.Doctor.FirstName)
+                        .ThenBy(p => p.LastName)
+                        .ThenBy(p => p.FirstName);
+                }
+                else
+                {
+                    patients = patients
+                        .OrderByDescending(p => p.Doctor.LastName)
+                        .ThenByDescending(p => p.Doctor.FirstName)
+                        .ThenBy(p => p.LastName)
+                        .ThenBy(p => p.FirstName);
+                }
+            }
+            else //Sorting by Patient Name
+            {
+                if (sortDirection == "asc")
+                {
+                    patients = patients
+                        .OrderBy(p => p.LastName)
+                        .ThenBy(p => p.FirstName);
+                }
+                else
+                {
+                    patients = patients
+                        .OrderByDescending(p => p.LastName)
+                        .ThenByDescending(p => p.FirstName);
+                }
+            }
+            //Set sort for next time
+            ViewData["sortField"] = sortField;
+            ViewData["sortDirection"] = sortDirection;
+
+
 
             return View(await patients.ToListAsync());
         }
