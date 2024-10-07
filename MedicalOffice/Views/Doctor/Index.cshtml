@@ -9,59 +9,63 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Summary)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DoctorSpecialties)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Summary)
-            </td>
-                <td>
-                    @{
-                        int specCount = item.DoctorSpecialties.Count;
-                        if (specCount > 0)
-                        {
-                            string firstSpec = item.DoctorSpecialties.FirstOrDefault().Specialty.SpecialtyName;
-                            if (specCount > 1)
+<form asp-action="Index" method="get">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Summary)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DoctorSpecialties)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Summary)
+                    </td>
+                    <td>
+                        @{
+                            int specCount = item.DoctorSpecialties.Count;
+                            if (specCount > 0)
                             {
-                                string specList = "";//Html string of specialty names separated by <br /> tags
-                                var s = item.DoctorSpecialties.ToList();
-                                for (int i = 1; i < specCount; i++)//Skip the first because we have it already
+                                string firstSpec = item.DoctorSpecialties.FirstOrDefault().Specialty.SpecialtyName;
+                                if (specCount > 1)
                                 {
-                                    specList += s[i].Specialty.SpecialtyName + " <br />";
+                                    string specList = "";//Html string of specialty names separated by <br /> tags
+                                    var s = item.DoctorSpecialties.ToList();
+                                    for (int i = 1; i < specCount; i++)//Skip the first because we have it already
+                                    {
+                                        specList += s[i].Specialty.SpecialtyName + " <br />";
+                                    }
+                                    <a class="" role="button" data-bs-toggle="collapse" href="#collapseSpecalty@(item.ID)"
+                                       aria-expanded="false" aria-controls="collapseSpecalty@(item.ID)">
+                                        @firstSpec <span class="badge bg-info">@specCount</span>
+                                    </a>
+                                    <div class="collapse" id="collapseSpecalty@(item.ID)">
+                                        @Html.Raw(specList)
+                                    </div>
                                 }
-                                <a class="" role="button" data-bs-toggle="collapse" href="#collapseSpecalty@(item.ID)"
-                                   aria-expanded="false" aria-controls="collapseSpecalty@(item.ID)">
-                                    @firstSpec <span class="badge bg-info">@specCount</span>
-                                </a>
-                                <div class="collapse" id="collapseSpecalty@(item.ID)">
-                                    @Html.Raw(specList)
-                                </div>
-                            }
-                            else
-                            {
-                                @firstSpec
+                                else
+                                {
+                                    @firstSpec
+                                }
                             }
                         }
-                    }
-                </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_PagingNavBar" />
+</form>

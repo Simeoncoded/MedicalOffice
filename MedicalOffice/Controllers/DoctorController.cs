@@ -9,6 +9,7 @@ using MedicalOffice.Data;
 using MedicalOffice.Models;
 using MedicalOffice.ViewModels;
 using Microsoft.EntityFrameworkCore.Storage;
+using MedicalOffice.Utilities;
 
 namespace MedicalOffice.Controllers
 {
@@ -22,12 +23,16 @@ namespace MedicalOffice.Controllers
         }
 
         // GET: Doctor
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
-            return View(await _context.Doctors
-                .Include(d=>d.DoctorSpecialties).ThenInclude(d=>d.Specialty)
-                .AsNoTracking()
-                .ToListAsync());
+            var doctors = _context.Doctors
+               .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+               .AsNoTracking();
+
+            int pageSize = 10;//Change as required
+            var pagedData = await PaginatedList<Doctor>.CreateAsync(doctors.AsNoTracking(), page ?? 1, pageSize);
+
+            return View(pagedData);
         }
 
         // GET: Doctor/Details/5
