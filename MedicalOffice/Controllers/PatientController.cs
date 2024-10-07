@@ -9,6 +9,7 @@ using MedicalOffice.Data;
 using MedicalOffice.Models;
 using MedicalOffice.ViewModels;
 using Microsoft.EntityFrameworkCore.Storage;
+using MedicalOffice.Utilities;
 
 namespace MedicalOffice.Controllers
 {
@@ -23,7 +24,7 @@ namespace MedicalOffice.Controllers
 
         // GET: Patient
         public async Task<IActionResult> Index(string? SearchString, int? DoctorID, 
-            int? MedicalTrialID, int? ConditionID,
+            int? MedicalTrialID, int? ConditionID, int? page,
             string? actionButton, string sortDirection = "asc", string sortField = "Patient"
 )
         {
@@ -87,6 +88,7 @@ namespace MedicalOffice.Controllers
             //Before we sort, see if we have called for a change of filtering or sorting
             if (!String.IsNullOrEmpty(actionButton)) //Form Submitted!
             {
+                page = 1;//Reset page to start
                 if (sortOptions.Contains(actionButton))//Change of sort is requested
                 {
                     if (actionButton == sortField) //Reverse order on same field
@@ -166,9 +168,11 @@ namespace MedicalOffice.Controllers
             ViewData["sortField"] = sortField;
             ViewData["sortDirection"] = sortDirection;
 
+            //Handle Paging
+            int pageSize = 10;//Change as required
+            var pagedData = await PaginatedList<Patient>.CreateAsync(patients.AsNoTracking(), page ?? 1, pageSize);
 
-
-            return View(await patients.ToListAsync());
+            return View(pagedData);
         }
 
         // GET: Patient/Details/5
