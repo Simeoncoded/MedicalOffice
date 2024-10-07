@@ -24,7 +24,7 @@ namespace MedicalOffice.Controllers
 
         // GET: Patient
         public async Task<IActionResult> Index(string? SearchString, int? DoctorID, 
-            int? MedicalTrialID, int? ConditionID, int? page,
+            int? MedicalTrialID, int? ConditionID, int? page, int? pageSizeID,
             string? actionButton, string sortDirection = "asc", string sortField = "Patient"
 )
         {
@@ -169,7 +169,8 @@ namespace MedicalOffice.Controllers
             ViewData["sortDirection"] = sortDirection;
 
             //Handle Paging
-            int pageSize = 10;//Change as required
+            int pageSize = PageSizeHelper.SetPageSize(HttpContext, pageSizeID);
+            ViewData["pageSizeID"] = PageSizeHelper.PageSizeList(pageSize);
             var pagedData = await PaginatedList<Patient>.CreateAsync(patients.AsNoTracking(), page ?? 1, pageSize);
 
             return View(pagedData);

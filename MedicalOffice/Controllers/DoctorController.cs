@@ -23,13 +23,16 @@ namespace MedicalOffice.Controllers
         }
 
         // GET: Doctor
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page, int? pageSizeID)
         {
             var doctors = _context.Doctors
                .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
                .AsNoTracking();
 
-            int pageSize = 10;//Change as required
+            //Handle Paging
+            int pageSize = PageSizeHelper.SetPageSize(HttpContext, pageSizeID);
+            ViewData["pageSizeID"] = PageSizeHelper.PageSizeList(pageSize);
+
             var pagedData = await PaginatedList<Doctor>.CreateAsync(doctors.AsNoTracking(), page ?? 1, pageSize);
 
             return View(pagedData);
