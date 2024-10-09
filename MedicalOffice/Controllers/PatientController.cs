@@ -334,7 +334,7 @@ namespace MedicalOffice.Controllers
                     }
                 }
             }
-
+            PopulateAssignedConditionData(patientToUpdate);
             PopulateDropDownLists(patientToUpdate);
             return View(patientToUpdate);
         }
