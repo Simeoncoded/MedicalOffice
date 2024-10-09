@@ -20,27 +20,36 @@
             <div class="card card-body bg-light">
                 <div class="row">
                     <div class="form-group col-md-4">
+                        <label class="control-label">Select by Medical Coverage:</label>
+                        @Html.DropDownList("CoverageFilter", (SelectList)ViewBag.CoverageSelectList,
+                                 "All Coverage Types", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                    <div class="form-group col-md-4">
                         <label class="control-label">Select by Doctor:</label>
-                        @Html.DropDownList("DoctorID", null, "All Doctors", htmlAttributes: new { @class = "form-control" })
+                        @Html.DropDownList("DoctorID", null, "All Doctors",
+                                 htmlAttributes: new { @class = "form-control" })
                     </div>
-                    <div class="form-group col-md-6">
-                        <label class="control-label">Filter by Medical Trial:</label>
-                        @Html.DropDownList("MedicalTrialID", null, "None", htmlAttributes: new { @class = "form-control" })
-                    </div>
-                </div>
-                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="control-label">Filter by Condition:</label>
-                            @Html.DropDownList("ConditionID", null, "All Conditions", htmlAttributes: new { @class = "form-control" })
+                            @Html.DropDownList("ConditionID", null, "All Conditions",
+                                     htmlAttributes: new { @class = "form-control" })
                         </div>
                     </div>
+                </div>
+                <div class="row">
                     <div class="form-group col-md-4">
                         <label class="control-label">Search Patient Name:</label>
                         @Html.TextBox("SearchString", null, new { @class = "form-control" })
                     </div>
-                    <div class="form-group col-md-4 align-self-end">
-                        <input type="submit" name="actionButton" value="Filter" class="btn btn-outline-primary" />
+                    <div class="form-group col-md-6">
+                        <label class="control-label">Filter by Medical Trial:</label>
+                        @Html.DropDownList("MedicalTrialID", null, "None",
+                                 htmlAttributes: new { @class = "form-control" })
+                    </div>
+                    <div class="form-group col-md-2 align-self-end">
+                        <input type="submit" name="actionButton" value="Filter"
+                               class="btn btn-outline-primary" />
                         <a asp-action="Index" class="btn btn-outline-dark">Clear</a>
                     </div>
                 </div>

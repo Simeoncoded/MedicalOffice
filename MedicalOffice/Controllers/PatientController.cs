@@ -26,7 +26,7 @@ namespace MedicalOffice.Controllers
 
         // GET: Patient
         public async Task<IActionResult> Index(string? SearchString, int? DoctorID, 
-            int? MedicalTrialID, int? ConditionID, int? page, int? pageSizeID,
+            int? MedicalTrialID, int? ConditionID, int? page, int? pageSizeID, string? CoverageFilter,
             string? actionButton, string sortDirection = "asc", string sortField = "Patient"
 )
         {
@@ -45,6 +45,17 @@ namespace MedicalOffice.Controllers
             ViewData["ConditionID"] = new SelectList(_context
                 .Conditions
                 .OrderBy(c => c.ConditionName), "ID", "ConditionName");
+
+            //SelectList for the Coverage Enum
+            if (Enum.TryParse(CoverageFilter, out Coverage selectedCoverage))
+            {
+                ViewBag.CoverageSelectList = Coverage.OHIP.ToSelectList(selectedCoverage);
+            }
+            else
+            {
+                ViewBag.CoverageSelectList = Coverage.OHIP.ToSelectList(null);
+            }
+
 
             var patients = _context.Patients
                 .Include(p => p.Doctor)
@@ -72,6 +83,11 @@ namespace MedicalOffice.Controllers
             if (ConditionID.HasValue)
             {
                 patients = patients.Where(p => p.PatientConditions.Any(c => c.ConditionID == ConditionID));
+                numberFilters++;
+            }
+            if (!String.IsNullOrEmpty(CoverageFilter))
+            {
+                patients = patients.Where(p => p.Coverage == selectedCoverage);
                 numberFilters++;
             }
 
