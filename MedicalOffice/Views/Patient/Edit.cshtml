@@ -7,6 +7,7 @@
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ID" />
+            <input type="hidden" asp-for="RowVersion" />
             <div class="form-group">
                 <label asp-for="OHIP" class="control-label"></label>
                 <input asp-for="OHIP" class="form-control" />
@@ -58,6 +59,7 @@
             <select asp-for="MedicalTrialID" class="form-control" asp-items="ViewBag.MedicalTrialID">
             <option value="">None</option>
             </select>
+            <span asp-validation-for="MedicalTrialID" class="text-danger"></span>
 
     </div>
 

@@ -305,7 +305,7 @@ namespace MedicalOffice.Controllers
         // POST: Patient/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, string[] selectedOptions)
+        public async Task<IActionResult> Edit(int id, string[] selectedOptions, Byte[] RowVersion)
         {
             var patientToUpdate = await _context.Patients
                 .Include(p => p.PatientConditions).ThenInclude(p => p.Condition)
@@ -317,6 +317,9 @@ namespace MedicalOffice.Controllers
 
             //Update the medical history
             UpdatePatientConditions(selectedOptions, patientToUpdate);
+
+            //Put the original RowVersion value in the OriginalValues collection for the entity
+            _context.Entry(patientToUpdate).Property("RowVersion").OriginalValue = RowVersion;
 
             if (await TryUpdateModelAsync<Patient>(patientToUpdate, "",
                 p => p.OHIP, p => p.FirstName, p => p.MiddleName, p => p.LastName, p => p.DOB,
@@ -332,15 +335,77 @@ namespace MedicalOffice.Controllers
                     }
                     return Redirect(returnUrl);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!PatientExists(patientToUpdate.ID))
+                    var exceptionEntry = ex.Entries.Single();
+                    var clientValues = (Patient)exceptionEntry.Entity;
+                    var databaseEntry = exceptionEntry.GetDatabaseValues();
+                    if (databaseEntry == null)
                     {
-                        return NotFound();
+                        ModelState.AddModelError("",
+                            "Unable to save changes. The Patient was deleted by another user.");
                     }
                     else
                     {
-                        throw;
+                        var databaseValues = (Patient)databaseEntry.ToObject();
+                        if (databaseValues.FirstName != clientValues.FirstName)
+                            ModelState.AddModelError("FirstName", "Current value: "
+                                + databaseValues.FirstName);
+                        if (databaseValues.MiddleName != clientValues.MiddleName)
+                            ModelState.AddModelError("MiddleName", "Current value: "
+                                + databaseValues.MiddleName);
+                        if (databaseValues.LastName != clientValues.LastName)
+                            ModelState.AddModelError("LastName", "Current value: "
+                                + databaseValues.LastName);
+                        if (databaseValues.OHIP != clientValues.OHIP)
+                            ModelState.AddModelError("OHIP", "Current value: "
+                                + databaseValues.OHIP);
+                        if (databaseValues.DOB != clientValues.DOB)
+                            ModelState.AddModelError("DOB", "Current value: "
+                                + String.Format("{0:d}", databaseValues.DOB));
+                        if (databaseValues.Phone != clientValues.Phone)
+                            ModelState.AddModelError("Phone", "Current value: "
+                                + databaseValues.PhoneFormatted);
+                        if (databaseValues.Email != clientValues.Email)
+                            ModelState.AddModelError("EMail", "Current value: "
+                                + databaseValues.Email);
+                        if (databaseValues.ExpYrVisits != clientValues.ExpYrVisits)
+                            ModelState.AddModelError("ExpYrVisits", "Current value: "
+                                + databaseValues.ExpYrVisits);
+                        if (databaseValues.Coverage != clientValues.Coverage)
+                            ModelState.AddModelError("Coverage", "Current value: "
+                                + databaseValues.Coverage);
+                        //For the foreign key, we need to go to the database to get the information to show
+                        if (databaseValues.DoctorID != clientValues.DoctorID)
+                        {
+                            Doctor? databaseDoctor = await _context.Doctors.FirstOrDefaultAsync(i => i.ID == databaseValues.DoctorID);
+                            ModelState.AddModelError("DoctorID", $"Current value: {databaseDoctor?.Summary}");
+                        }
+                        //A little extra work for the nullable foreign key.  No sense going to the database and asking for something
+                        //we already know is not there.
+                        if (databaseValues.MedicalTrialID != clientValues.MedicalTrialID)
+                        {
+                            if (databaseValues.MedicalTrialID.HasValue)
+                            {
+                                MedicalTrial? databaseMedicalTrial = await _context.MedicalTrials.FirstOrDefaultAsync(i => i.ID == databaseValues.MedicalTrialID);
+                                ModelState.AddModelError("MedicalTrialID", $"Current value: {databaseMedicalTrial?.TrialName}");
+                            }
+                            else
+
+                            {
+                                ModelState.AddModelError("MedicalTrialID", $"Current value: None");
+                            }
+                        }
+                        ModelState.AddModelError(string.Empty, "The record you attempted to edit "
+                                + "was modified by another user after you received your values. The "
+                                + "edit operation was canceled and the current values in the database "
+                                + "have been displayed. If you still want to save your version of this record, click "
+                                + "the Save button again. Otherwise click the 'Back to Patient List' hyperlink.");
+
+                        //Final steps before redisplaying: Update RowVersion from the Database
+                        //and remove the RowVersion error from the ModelState
+                        patientToUpdate.RowVersion = databaseValues.RowVersion ?? Array.Empty<byte>();
+                        ModelState.Remove("RowVersion");
                     }
                 }
                 catch (DbUpdateException dex)

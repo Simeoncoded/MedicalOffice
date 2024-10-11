@@ -26,20 +26,48 @@ namespace MedicalOffice.Data
                 #region Prepare the Database
                 try
                 {
-                    if (UseMigrations)
+                    //Note: .CanConnect() will return false if the database is not there!
+                    if (DeleteDatabase || !context.Database.CanConnect())
                     {
-                        if (DeleteDatabase)
+                        context.Database.EnsureDeleted(); //Delete the existing version 
+                        if (UseMigrations)
                         {
-                            context.Database.EnsureDeleted(); //Delete the existing version 
+                            context.Database.Migrate(); //Create the Database and apply all migrations
                         }
-                        context.Database.Migrate(); //Apply all migrations
-                    }
-                    else
-                    {
-                        if (DeleteDatabase)
+                        else
                         {
-                            context.Database.EnsureDeleted(); //Delete the existing version 
                             context.Database.EnsureCreated(); //Create and update the database as per the Model
+                        }
+                        //Now create any additional database objects such as Triggers or Views
+                        //--------------------------------------------------------------------
+                        //Create the Triggers
+                        string sqlCmd = @"
+                            CREATE TRIGGER SetPatientTimestampOnUpdate
+                            AFTER UPDATE ON Patients
+                            BEGIN
+                                UPDATE Patients
+                                SET RowVersion = randomblob(8)
+                                WHERE rowid = NEW.rowid;
+                            END;
+                        ";
+                        context.Database.ExecuteSqlRaw(sqlCmd);
+
+                        sqlCmd = @"
+                            CREATE TRIGGER SetPatientTimestampOnInsert
+                            AFTER INSERT ON Patients
+                            BEGIN
+                                UPDATE Patients
+                                SET RowVersion = randomblob(8)
+                                WHERE rowid = NEW.rowid;
+                            END
+                        ";
+                        context.Database.ExecuteSqlRaw(sqlCmd);
+                    }
+                    else //The database is already created
+                    {
+                        if (UseMigrations)
+                        {
+                            context.Database.Migrate(); //Apply all migrations
                         }
                     }
                 }
@@ -50,7 +78,7 @@ namespace MedicalOffice.Data
                 #endregion
 
                 //Seed data needed for production and during development
-                    #region Seed Required Data
+                #region Seed Required Data
                 try
                 {
                     //Add some Medical Trials

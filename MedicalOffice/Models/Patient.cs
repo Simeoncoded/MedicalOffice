@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿    using System.ComponentModel.DataAnnotations;
 
 namespace MedicalOffice.Models
 {
@@ -82,6 +82,10 @@ namespace MedicalOffice.Models
         [StringLength(255)]
         [DataType(DataType.EmailAddress)]
         public string? Email { get; set; }
+
+        [ScaffoldColumn(false)]
+        [Timestamp]
+        public Byte[]? RowVersion { get; set; }//Added for concurrency
 
         [Required(ErrorMessage ="You must select the Patient's Health Coverage!")]
         public Coverage Coverage { get; set; }
