@@ -2,7 +2,7 @@
 
 namespace MedicalOffice.Models
 {
-    public class Doctor
+    public class Doctor: Auditable
     {
         public int ID { get; set; }
 
