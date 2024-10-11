@@ -1,12 +1,6 @@
 ﻿@model MedicalOffice.Models.Doctor
 
-@{
-    ViewData["Title"] = "Edit";
-}
-
-<h1>Edit</h1>
-
-<h4>Doctor</h4>
+<partial name="_ViewHeading" />
 <hr />
 <form asp-action="Edit">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
