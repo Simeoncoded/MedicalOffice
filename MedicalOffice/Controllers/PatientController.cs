@@ -248,7 +248,12 @@ namespace MedicalOffice.Controllers
                 {
                     _context.Add(patient);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    var returnUrl = ViewData["returnURL"]?.ToString();
+                    if (string.IsNullOrEmpty(returnUrl))
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    return Redirect(returnUrl);
                 }
             }
             catch (RetryLimitExceededException /* dex */)//This is a Transaction in the Database!
@@ -320,7 +325,12 @@ namespace MedicalOffice.Controllers
                 try
                 {
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    var returnUrl = ViewData["returnURL"]?.ToString();
+                    if (string.IsNullOrEmpty(returnUrl))
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    return Redirect(returnUrl);
                 }
                 catch (DbUpdateConcurrencyException)
                 {

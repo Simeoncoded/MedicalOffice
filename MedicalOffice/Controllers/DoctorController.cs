@@ -84,7 +84,7 @@ namespace MedicalOffice.Controllers
                     _context.Add(doctor);
                     await _context.SaveChangesAsync();
                     //version in full detail?
-                    return RedirectToAction("Details", new { doctorToUpdate.ID });
+                    return RedirectToAction("Details", new { doctor.ID });
                 }
             }
 
