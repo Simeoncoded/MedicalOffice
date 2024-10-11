@@ -14,7 +14,7 @@ using MedicalOffice.CustomControllers;
 
 namespace MedicalOffice.Controllers
 {
-    public class PatientController : CognizantController
+    public class PatientController : ElephantController
 
     {
         private readonly MedicalOfficeContext _context;
@@ -395,7 +395,12 @@ namespace MedicalOffice.Controllers
                     _context.Patients.Remove(patient);
                     await _context.SaveChangesAsync();
                 }
-                return RedirectToAction(nameof(Index));
+                var returnUrl = ViewData["returnURL"]?.ToString();
+                if (string.IsNullOrEmpty(returnUrl))
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                return Redirect(returnUrl);
             }
             catch (DbUpdateException)
             {

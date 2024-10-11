@@ -14,7 +14,7 @@ using MedicalOffice.CustomControllers;
 
 namespace MedicalOffice.Controllers
 {
-    public class DoctorController : CognizantController
+    public class DoctorController : ElephantController
     {
         private readonly MedicalOfficeContext _context;
 
@@ -83,7 +83,8 @@ namespace MedicalOffice.Controllers
                 {
                     _context.Add(doctor);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    //version in full detail?
+                    return RedirectToAction("Details", new { doctorToUpdate.ID });
                 }
             }
 
@@ -220,7 +221,12 @@ namespace MedicalOffice.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var returnUrl = ViewData["returnURL"]?.ToString();
+                if (string.IsNullOrEmpty(returnUrl))
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                return Redirect(returnUrl);
             }
             catch (DbUpdateException dex)
             {
