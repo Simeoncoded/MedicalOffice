@@ -57,7 +57,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
        
-    MedicalOfficeInitializer.Initialize(services, true);
+    MedicalOfficeInitializer.Initialize(services, false);
 }
 
 app.Run();

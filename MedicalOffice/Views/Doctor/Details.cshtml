@@ -59,7 +59,37 @@
                 }
             }
         </dd>
-
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DoctorDocuments)
+        </dt>
+        <dd class="col-sm-10">
+            @{
+                int fileCount = Model.DoctorDocuments.Count;
+                if (fileCount > 0)
+                {
+                    var firstFile = Model.DoctorDocuments.FirstOrDefault(); ;
+                    if (fileCount > 1)
+                    {
+                        <a class="" role="button" data-bs-toggle="collapse" href="#collapseDocs@(Model.ID)"
+                           aria-expanded="false" aria-controls="collapseDocs@(Model.ID)">
+                            <span class="badge bg-info">@fileCount</span> Documents...
+                        </a>
+                        <div class="collapse" id="collapseDocs@(Model.ID)">
+                            @{
+                                foreach (var d in Model.DoctorDocuments)
+                                {
+                                    <a asp-action="Download" asp-route-id="@d.ID">@d.FileName</a> <br />
+                                }
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-action="Download" asp-route-id="@firstFile?.ID">@firstFile?.FileName</a>
+                    }
+                }
+            }
+        </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Patients)
         </dt>

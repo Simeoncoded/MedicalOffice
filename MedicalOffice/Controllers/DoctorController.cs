@@ -28,6 +28,7 @@ namespace MedicalOffice.Controllers
         {
             var doctors = _context.Doctors
                .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+               .Include(d => d.DoctorDocuments)
                .AsNoTracking();
 
             //Handle Paging
@@ -50,6 +51,7 @@ namespace MedicalOffice.Controllers
             var doctor = await _context.Doctors
                 .Include(d => d.Patients)
                  .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+                 .Include(d => d.DoctorDocuments)
                  .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (doctor == null)
@@ -197,6 +199,7 @@ namespace MedicalOffice.Controllers
 
             var doctor = await _context.Doctors
                  .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+                 .Include(d => d.DoctorDocuments)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (doctor == null)
@@ -215,6 +218,7 @@ namespace MedicalOffice.Controllers
 
             var doctor = await _context.Doctors
                  .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+                 .Include(d => d.DoctorDocuments)
                  .FirstOrDefaultAsync(m => m.ID == id);
 
             try

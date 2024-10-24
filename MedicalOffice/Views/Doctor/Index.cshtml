@@ -15,6 +15,9 @@
                 <th>
                     @Html.DisplayNameFor(model => model.DoctorSpecialties)
                 </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DoctorDocuments)
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -54,6 +57,34 @@
                             }
                         }
                     </td>
+                    <td>
+                        @{
+                            int fileCount = item.DoctorDocuments.Count;
+                            if (fileCount > 0)
+                            {
+                                var firstFile = item.DoctorDocuments.FirstOrDefault(); ;
+                                if (fileCount > 1)
+                                {
+                                    <a class="" role="button" data-bs-toggle="collapse" href="#collapseDocs@(item.ID)" aria-expanded="false" aria-controls="collapseDocs@(item.ID)">
+                                        <span class="badge bg-info">@fileCount</span> Documents...
+                                    </a>
+                                    <div class="collapse" id="collapseDocs@(item.ID)">
+                                        @{
+                                            foreach (var d in item.DoctorDocuments)
+                                            {
+                                                <a asp-action="Download" asp-route-id="@d.ID">@d.FileName</a> <br />
+                                            }
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a asp-action="Download" asp-route-id="@firstFile?.ID">@firstFile?.FileName</a>
+                                }
+                            }
+                        }
+                    </td>
+
                     <td>
                         <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
                         <a asp-action="Details" asp-route-id="@item.ID">Details</a> |

@@ -25,3 +25,10 @@ body {
 .form-group{
     margin-bottom: 1rem;
 }
+
+.text-center{
+    background-color:lightblue;
+    color:#fff;
+    height:200px;
+    border-radius:20px;
+}
