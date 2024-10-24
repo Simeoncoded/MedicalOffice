@@ -87,6 +87,19 @@ namespace MedicalOffice.Data.MOMigrations
                     b.ToTable("DoctorSpecialties");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.FileContent", b =>
+                {
+                    b.Property<int>("FileContentID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("FileContentID");
+
+                    b.ToTable("FileContent");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.MedicalTrial", b =>
                 {
                     b.Property<int>("ID")
@@ -216,6 +229,46 @@ namespace MedicalOffice.Data.MOMigrations
                     b.ToTable("Specialties");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.UploadedFile", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("UploadedFiles");
+
+                    b.HasDiscriminator().HasValue("UploadedFile");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.DoctorDocument", b =>
+                {
+                    b.HasBaseType("MedicalOffice.Models.UploadedFile");
+
+                    b.Property<int>("DoctorID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasIndex("DoctorID");
+
+                    b.HasDiscriminator().HasValue("DoctorDocument");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.DoctorSpecialty", b =>
                 {
                     b.HasOne("MedicalOffice.Models.Doctor", "Doctor")
@@ -233,6 +286,17 @@ namespace MedicalOffice.Data.MOMigrations
                     b.Navigation("Doctor");
 
                     b.Navigation("Specialty");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.FileContent", b =>
+                {
+                    b.HasOne("MedicalOffice.Models.UploadedFile", "UploadedFile")
+                        .WithOne("FileContent")
+                        .HasForeignKey("MedicalOffice.Models.FileContent", "FileContentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UploadedFile");
                 });
 
             modelBuilder.Entity("MedicalOffice.Models.Patient", b =>
@@ -271,6 +335,17 @@ namespace MedicalOffice.Data.MOMigrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.DoctorDocument", b =>
+                {
+                    b.HasOne("MedicalOffice.Models.Doctor", "Doctor")
+                        .WithMany("DoctorDocuments")
+                        .HasForeignKey("DoctorID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Condition", b =>
                 {
                     b.Navigation("PatientConditions");
@@ -278,6 +353,8 @@ namespace MedicalOffice.Data.MOMigrations
 
             modelBuilder.Entity("MedicalOffice.Models.Doctor", b =>
                 {
+                    b.Navigation("DoctorDocuments");
+
                     b.Navigation("DoctorSpecialties");
 
                     b.Navigation("Patients");
@@ -296,6 +373,11 @@ namespace MedicalOffice.Data.MOMigrations
             modelBuilder.Entity("MedicalOffice.Models.Specialty", b =>
                 {
                     b.Navigation("DoctorSpecialties");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.UploadedFile", b =>
+                {
+                    b.Navigation("FileContent");
                 });
 #pragma warning restore 612, 618
         }

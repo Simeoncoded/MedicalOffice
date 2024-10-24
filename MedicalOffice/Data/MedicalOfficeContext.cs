@@ -44,6 +44,8 @@ namespace MedicalOffice.Data
         public DbSet<Condition> Conditions { get; set; }
         public DbSet<Specialty> Specialties { get; set; }
         public DbSet<DoctorSpecialty> DoctorSpecialties { get; set; }
+        public DbSet<DoctorDocument> DoctorDocuments { get; set; }
+        public DbSet<UploadedFile> UploadedFiles { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //prevent cascade delete from doctor to patient

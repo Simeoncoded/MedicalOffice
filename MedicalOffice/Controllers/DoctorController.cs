@@ -73,7 +73,8 @@ namespace MedicalOffice.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,FirstName,MiddleName,LastName")] Doctor doctor, string[] selectedOptions)
+        public async Task<IActionResult> Create([Bind("ID,FirstName,MiddleName,LastName")] Doctor doctor, string[] selectedOptions,
+            List<IFormFile> theFiles)
         {
 
             try
@@ -81,6 +82,7 @@ namespace MedicalOffice.Controllers
                 UpdateDoctorSpecialties(selectedOptions, doctor);
                 if (ModelState.IsValid)
                 {
+                    await AddDocumentsAsync(doctor, theFiles);
                     _context.Add(doctor);
                     await _context.SaveChangesAsync();
                     //version in full detail?
@@ -100,14 +102,14 @@ namespace MedicalOffice.Controllers
 
             //Validation Error so give the user another chance
             PopulateAssignedSpecialtyData(doctor);
-         
+
             return View(doctor);
         }
 
-       
+
 
         // GET: Doctor/Edit/5
-        public async Task<IActionResult> Edit(int? id) 
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
@@ -117,6 +119,7 @@ namespace MedicalOffice.Controllers
 
             var doctor = await _context.Doctors
                .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+               .Include(d => d.DoctorDocuments)
                .FirstOrDefaultAsync(d => d.ID == id);
             if (doctor == null)
             {
@@ -126,19 +129,20 @@ namespace MedicalOffice.Controllers
             return View(doctor);
         }
 
-       
+
 
         // POST: Doctor/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, string[] selectedOptions)
+        public async Task<IActionResult> Edit(int id, string[] selectedOptions, List<IFormFile> theFiles)
         {
             //Go get the Doctor to update
             //Go get the Doctor to update
             var doctorToUpdate = await _context.Doctors
                 .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
+                .Include(d => d.DoctorDocuments)
                 .FirstOrDefaultAsync(p => p.ID == id);
 
             //check that you got it or exit with a not found error
@@ -153,6 +157,7 @@ namespace MedicalOffice.Controllers
             {
                 try
                 {
+                    await AddDocumentsAsync(doctorToUpdate, theFiles);
                     await _context.SaveChangesAsync();
                     //Instead of going back to the Index, why not show the revised
                     //version in full detail?
@@ -211,11 +216,11 @@ namespace MedicalOffice.Controllers
             var doctor = await _context.Doctors
                  .Include(d => d.DoctorSpecialties).ThenInclude(d => d.Specialty)
                  .FirstOrDefaultAsync(m => m.ID == id);
-             
+
             try
             {
-                
-                if (doctor != null) 
+
+                if (doctor != null)
                 {
                     _context.Doctors.Remove(doctor);
                 }
@@ -240,7 +245,22 @@ namespace MedicalOffice.Controllers
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if problem persists please contact your system administrator");
                 }
             }
-            return View(doctor); 
+            return View(doctor);
+        }
+
+        public async Task<FileContentResult> Download(int id)
+        {
+            var theFile = await _context.UploadedFiles
+                .Include(d => d.FileContent)
+                .Where(f => f.ID == id)
+                .FirstOrDefaultAsync();
+
+            if (theFile?.FileContent?.Content == null || theFile.MimeType == null)
+            {
+                return new FileContentResult(Array.Empty<byte>(), "application/octet-stream");
+            }
+
+            return File(theFile.FileContent.Content, theFile.MimeType, theFile.FileName);
         }
 
         private void PopulateAssignedSpecialtyData(Doctor doctor)
@@ -310,6 +330,33 @@ namespace MedicalOffice.Controllers
                 }
             }
         }
+        private async Task AddDocumentsAsync(Doctor doctor, List<IFormFile> theFiles)
+        {
+            foreach (var f in theFiles)
+            {
+                if (f != null)
+                {
+                    string mimeType = f.ContentType;
+                    string fileName = Path.GetFileName(f.FileName);
+                    long fileLength = f.Length;
+                    //Note: you could filter for mime types if you only want to allow
+                    //certain types of files.  I am allowing everything.
+                    if (!(fileName == "" || fileLength == 0))//Looks like we have a file!!!
+                    {
+                        DoctorDocument d = new DoctorDocument();
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await f.CopyToAsync(memoryStream);
+                            d.FileContent.Content = memoryStream.ToArray();
+                        }
+                        d.MimeType = mimeType;
+                        d.FileName = fileName;
+                        doctor.DoctorDocuments.Add(d);
+                    };
+                }
+            }
+        }
+
 
         private bool DoctorExists(int id)
         {

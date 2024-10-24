@@ -2,7 +2,7 @@
 
 <partial name="_ViewHeading" />
 <hr />
-<form asp-action="Edit">
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="ID" />
     <div class="row">
@@ -22,6 +22,45 @@
                 <label asp-for="LastName" class="control-label"></label>
                 <input asp-for="LastName" class="form-control" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label"> Current Documents:</label>
+                <div class="ml-md-3">
+                    @{
+                        int fileCount = Model.DoctorDocuments.Count;
+                        if (fileCount > 0)
+                        {
+                            var firstFile = Model.DoctorDocuments.FirstOrDefault(); ;
+                            if (fileCount > 1)
+                            {
+                                <a class="" role="button" data-bs-toggle="collapse"
+                                   href="#collapseDocs@(Model.ID)" aria-expanded="false"
+                                   aria-controls="collapseDocs@(Model.ID)">
+                                    <span class="badge bg-info">@fileCount</span> Current Documents...
+                                </a>
+                                <div class="collapse" id="collapseDocs@(Model.ID)">
+                                    @{
+                                        foreach (var d in Model.DoctorDocuments)
+                                        {
+                                            <a asp-action="Download" asp-route-id="@d.ID">@d.FileName</a> <br />
+                                        }
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <a asp-action="Download" asp-route-id="@firstFile.?ID">@firstFile?.FileName</a>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label custom-file-label">Upload Additional Documents:</label>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" name="theFiles" multiple="multiple">
+                </div>
             </div>
         </div>
         <div class="col-md-8">
