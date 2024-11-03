@@ -2,12 +2,40 @@
 
 <partial name="_ViewHeading" />
 <hr />
+@{
+    var hasPicture = (Model.PatientPhoto?.Content != null);
+    if (hasPicture)
+    {
+        @:<div>
+            string imageBase64 = Convert.ToBase64String(Model.PatientPhoto.Content);
+            string imageSrc = string.Format("data:" + Model.PatientPhoto.MimeType + ";base64,{0}", imageBase64);
+            <img src="@imageSrc" alt="Profile Picture of @Model.Summary" 
+                title="Profile Picture of @Model.Summary" class="img-fluid rounded" />
+        @:</div><hr />
+    }
+}
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ID" />
             <input type="hidden" asp-for="RowVersion" />
+             <div>
+        @{
+            if (hasPicture)
+            {
+                <div class="row">
+                    <div class="form-check m-3">
+                        <input class="form-check-input" type="checkbox" id="chkRemoveImage" name="chkRemoveImage">
+                        <label class="form-check-label" for="chkRemoveImage">
+                        <strong>Check to remove Image</strong>
+                        </label>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
             <div class="form-group">
                 <label asp-for="OHIP" class="control-label"></label>
                 <input asp-for="OHIP" class="form-control" />
@@ -27,6 +55,12 @@
                 <label asp-for="LastName" class="control-label"></label>
                 <input asp-for="LastName" class="form-control" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label custom-file-label">Picture File:</label>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" name="thePicture" id="thePicture">
+                </div>
             </div>
             <div class="form-group">
                 <label asp-for="DOB" class="control-label"></label>

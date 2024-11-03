@@ -57,7 +57,9 @@
     <table class="table">
         <thead>
             <tr>
+                <th>
 
+                </th>
                 <th>
                     <input type="submit" name="actionButton" value="Patient" class="btn btn-link" />
                 </th>
@@ -83,6 +85,17 @@
             @foreach (var item in Model)
             {
                 <tr>
+                         <td>
+                        @{
+                            if (item.PatientThumbnail?.Content != null)
+                            {
+                                string imageBase64 = Convert.ToBase64String(item.PatientThumbnail.Content);
+                                string imageSrc = string.Format("data:" + item.PatientThumbnail.MimeType + ";base64,{0}", imageBase64);
+                                            <img src="@imageSrc" alt="Profile Picture of @item?.Summary" 
+                                                title="Profile Picture of @item?.Summary" class="img-fluid rounded" />
+                            }
+                        }
+                        </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.Summary)
                     </td>

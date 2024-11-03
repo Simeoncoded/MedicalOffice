@@ -61,6 +61,7 @@ namespace MedicalOffice.Controllers
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
                 .Include(p => p.PatientConditions).ThenInclude(pc=>pc.Condition)
+                .Include(p => p.PatientThumbnail)
                 .AsNoTracking();
 
             //Add as many filters as needed
@@ -206,6 +207,7 @@ namespace MedicalOffice.Controllers
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
                 .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
+                .Include(p => p.PatientPhoto)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (patient == null)
@@ -230,7 +232,8 @@ namespace MedicalOffice.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("OHIP,FirstName,MiddleName,LastName,DOB," +
-            "ExpYrVisits,Phone,Email,Coverage,MedicalTrialID,DoctorID")] Patient patient, string[] selectedOptions)
+            "ExpYrVisits,Phone,Email,Coverage,MedicalTrialID,DoctorID")] Patient patient, string[] selectedOptions,
+            IFormFile? thePicture)
         {
             try
             {
@@ -246,6 +249,7 @@ namespace MedicalOffice.Controllers
 
                 if (ModelState.IsValid)
                 {
+                    await AddPicture(patient, thePicture);
                     _context.Add(patient);
                     await _context.SaveChangesAsync();
                     var returnUrl = ViewData["returnURL"]?.ToString();
@@ -292,6 +296,7 @@ namespace MedicalOffice.Controllers
 
             var patient = await _context.Patients
                 .Include(p => p.PatientConditions).ThenInclude(p => p.Condition)
+                .Include(p => p.PatientPhoto)
                 .FirstOrDefaultAsync(p => p.ID == id);
             if (patient == null)
             {
@@ -305,10 +310,12 @@ namespace MedicalOffice.Controllers
         // POST: Patient/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, string[] selectedOptions, Byte[] RowVersion)
+        public async Task<IActionResult> Edit(int id, string[] selectedOptions, Byte[] RowVersion,
+            string? chkRemoveImage, IFormFile? thePicture)
         {
             var patientToUpdate = await _context.Patients
                 .Include(p => p.PatientConditions).ThenInclude(p => p.Condition)
+                .Include(p => p.PatientPhoto)
                 .FirstOrDefaultAsync(p => p.ID == id);
             if (patientToUpdate == null)
             {
@@ -327,6 +334,21 @@ namespace MedicalOffice.Controllers
             {
                 try
                 {
+                    //For the image
+                    if (chkRemoveImage != null)
+                    {
+                        //If we are just deleting the two versions of the photo, we need to make sure the Change Tracker knows
+                        //about them both so go get the Thumbnail since we did not include it.
+                        patientToUpdate.PatientThumbnail = _context.PatientThumbnails.Where(p => p.PatientID == patientToUpdate.ID).FirstOrDefault();
+                        //Then, setting them to null will cause them to be deleted from the database.
+                        patientToUpdate.PatientPhoto = null;
+                        patientToUpdate.PatientThumbnail = null;
+                    }
+                    else
+                    {
+                        await AddPicture(patientToUpdate, thePicture);
+                    }
+
                     await _context.SaveChangesAsync();
                     var returnUrl = ViewData["returnURL"]?.ToString();
                     if (string.IsNullOrEmpty(returnUrl))
@@ -442,6 +464,7 @@ namespace MedicalOffice.Controllers
                 .Include(p => p.Doctor)
                 .Include(p => p.MedicalTrial)
                 .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
+                .Include(p => p.PatientPhoto)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (patient == null)
@@ -461,6 +484,7 @@ namespace MedicalOffice.Controllers
                 .Include(p => p.Doctor)
                 .Include (p => p.MedicalTrial)
                 .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
+                .Include(p => p.PatientPhoto)
                 .FirstOrDefaultAsync(m => m.ID == id);
 
             try
@@ -570,6 +594,52 @@ namespace MedicalOffice.Controllers
                         PatientCondition conditionToRemove = patientToUpdate
                             .PatientConditions.SingleOrDefault(c => c.ConditionID == option.ID);
                         _context.Remove(conditionToRemove);
+                    }
+                }
+            }
+        }
+
+        private async Task AddPicture(Patient patient, IFormFile thePicture)
+        {
+            //Get the picture and save it with the Patient (2 sizes)
+            if (thePicture != null)
+            {
+                string mimeType = thePicture.ContentType;
+                long fileLength = thePicture.Length;
+                if (!(mimeType == "" || fileLength == 0))//Looks like we have a file!!!
+                {
+                    if (mimeType.Contains("image"))
+                    {
+                        using var memoryStream = new MemoryStream();
+                        await thePicture.CopyToAsync(memoryStream);
+                        var pictureArray = memoryStream.ToArray();//Gives us the Byte[]
+
+                        //Check if we are replacing or creating new
+                        if (patient.PatientPhoto != null)
+                        {
+                            //We already have pictures so just replace the Byte[]
+                            patient.PatientPhoto.Content = ResizeImage.ShrinkImageWebp(pictureArray, 500, 600);
+
+                            //Get the Thumbnail so we can update it.  Remember we didn't include it
+                            patient.PatientThumbnail = _context.PatientThumbnails.Where(p => p.PatientID == patient.ID).FirstOrDefault();
+                            if (patient.PatientThumbnail != null)
+                            {
+                                patient.PatientThumbnail.Content = ResizeImage.ShrinkImageWebp(pictureArray, 75, 90);
+                            }
+                        }
+                        else //No pictures saved so start new
+                        {
+                            patient.PatientPhoto = new PatientPhoto
+                            {
+                                Content = ResizeImage.ShrinkImageWebp(pictureArray, 500, 600),
+                                MimeType = "image/webp"
+                            };
+                            patient.PatientThumbnail = new PatientThumbnail
+                            {
+                                Content = ResizeImage.ShrinkImageWebp(pictureArray, 75, 90),
+                                MimeType = "image/webp"
+                            };
+                        }
                     }
                 }
             }

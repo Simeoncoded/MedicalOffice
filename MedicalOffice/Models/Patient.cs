@@ -96,6 +96,10 @@ namespace MedicalOffice.Models
         [Display(Name = "Medical Trial")]
         public MedicalTrial? MedicalTrial { get; set; }
 
+        public PatientPhoto? PatientPhoto { get; set; }
+        public PatientThumbnail? PatientThumbnail { get; set; }
+
+
         [Required(ErrorMessage ="You must select a Primary Care Physician.")]
         [Display(Name = "Doctor")]
         public int DoctorID { get; set; }

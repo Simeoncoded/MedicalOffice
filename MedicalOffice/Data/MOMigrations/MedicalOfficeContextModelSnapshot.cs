@@ -213,6 +213,54 @@ namespace MedicalOffice.Data.MOMigrations
                     b.ToTable("PatientConditions");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.PatientPhoto", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PatientID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("PatientID")
+                        .IsUnique();
+
+                    b.ToTable("PatientPhotos");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.PatientThumbnail", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PatientID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("PatientID")
+                        .IsUnique();
+
+                    b.ToTable("PatientThumbnails");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Specialty", b =>
                 {
                     b.Property<int>("ID")
@@ -335,6 +383,28 @@ namespace MedicalOffice.Data.MOMigrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.PatientPhoto", b =>
+                {
+                    b.HasOne("MedicalOffice.Models.Patient", "Patient")
+                        .WithOne("PatientPhoto")
+                        .HasForeignKey("MedicalOffice.Models.PatientPhoto", "PatientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.PatientThumbnail", b =>
+                {
+                    b.HasOne("MedicalOffice.Models.Patient", "Patient")
+                        .WithOne("PatientThumbnail")
+                        .HasForeignKey("MedicalOffice.Models.PatientThumbnail", "PatientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.DoctorDocument", b =>
                 {
                     b.HasOne("MedicalOffice.Models.Doctor", "Doctor")
@@ -368,6 +438,10 @@ namespace MedicalOffice.Data.MOMigrations
             modelBuilder.Entity("MedicalOffice.Models.Patient", b =>
                 {
                     b.Navigation("PatientConditions");
+
+                    b.Navigation("PatientPhoto");
+
+                    b.Navigation("PatientThumbnail");
                 });
 
             modelBuilder.Entity("MedicalOffice.Models.Specialty", b =>
