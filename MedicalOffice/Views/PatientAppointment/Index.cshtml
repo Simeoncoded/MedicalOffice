@@ -1,0 +1,146 @@
+﻿@model IEnumerable<MedicalOffice.Models.Appointment>
+
+@{
+    MedicalOffice.Models.Patient patient = (MedicalOffice.Models.Patient)ViewBag.Patient;
+    <partial name="_PatientDetail" model="patient" />
+    ViewData["Title"] = ViewData["ControllerFriendlyName"];
+}
+
+<form asp-action="Index" method="get">
+    <input type="hidden" name="sortDirection" value="@ViewData["sortDirection"]" />
+    <input type="hidden" name="sortField" value="@ViewData["sortField"]" />
+    <input type="hidden" name="PatientID" value="@patient.ID" />
+    <div class="form-horizontal">
+        <button class="btn @(ViewData["Filtering"])" type="button" data-bs-toggle="collapse" id="filterToggle" data-bs-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+            Filter/Search @ViewData["numberFilters"]
+        </button><br />
+        <div class="collapse @ViewData["ShowFilter"]" id="collapseFilter">
+            <div class="collapse card card-body bg-light" style="padding-top: 10px; padding-bottom: 5px;" id="collapseFilter">
+                <div class="row">
+                    <div class="form-group col-md-4 ml-md-3">
+                        <label class="control-label">Reason:</label>
+                        @Html.DropDownList("AppointmentReasonID", null, "All Reasons", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="control-label">Search Notes:</label>
+                        @Html.TextBox("SearchString", null, new { @class = "form-control" })
+                    </div>
+                    <div class="form-group col-md-4 align-self-end">
+                        <input type="submit" name="actionButton" value="Apply" class="btn btn-primary" />
+                        <a asp-action="Index" asp-route-PatientID="@patient.ID">Clear</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <table class="table">
+                <tr>
+                    <th>
+                        <input type="submit" name="actionButton" value="Appointment" class="btn btn-link" />
+                    </th>
+                    <th>
+                        <input type="submit" name="actionButton" value="Appt. Reason" class="btn btn-link" />
+                    </th>
+                    <th>
+                        <input type="submit" name="actionButton" value="Extra Fees" class="btn btn-link" />
+                        @{
+                            double totalFees = 0d;
+                        }
+                    </th>
+                    <th>
+                        <input type="submit" value="Notes" class="btn btn-toolbar" />
+                    </th>
+                    <th>
+                        <input type="submit" value="Doctor" class="btn btn-toolbar" />
+                    </th>
+                    <th>
+                        <a asp-controller="PatientAppointment" asp-action="Add"
+                           asp-route-PatientID="@patient.ID" asp-route-PatientName="@patient.Summary">
+                            <span class="btn btn-success" data-bs-toggle="tooltip"
+                                  title="Add Appointment"><strong>&#x271A; Add</strong></span>
+                        </a>
+                    </th>
+                </tr>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.StartDateSummary) -
+                            @Html.DisplayFor(modelItem => item.StartTimeSummary)
+                            (@Html.DisplayFor(modelItem => item.DurationSummary))
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.AppointmentReason.ReasonName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ExtraFee)
+                            @{
+                                totalFees += item.ExtraFee;
+                            }
+                        </td>
+                        <td>
+                            @{
+                                string[] noteWords = item.Notes.Split(' ');
+                                if (noteWords.Count() > 5)
+                                {
+                                    <a class="" role="button" data-bs-toggle="collapse" href="#collapseSum@(item.ID)" aria-expanded="false" aria-controls="collapseSum@(item.ID)">
+                                        @(string.Join(" ", noteWords.Take(5)) + "...")
+                                    </a>
+                                    <div class="collapse" id="collapseSum@(item.ID)">
+                                        <div class="well">
+                                            @(string.Join(" ", noteWords.Skip(5)))
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @item.Notes
+                                }
+                            }
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Doctor.Summary)
+                        </td>
+                        <td>
+                            <a asp-controller="PatientAppointment" asp-action="Update" asp-route-id="@item.ID"
+                               class="btn btn-sm btn-outline-primary" role="button"
+                               data-bs-toggle="tooltip" title="Edit @ViewData["ControllerFriendlyName"]">
+                                &#x270D;
+                            </a>
+                            <a asp-controller="PatientAppointment" asp-action="Remove" asp-route-id="@item.ID"
+                               class="btn btn-sm btn-outline-danger" role="button"
+                               data-bs-toggle="tooltip" title="Delete @ViewData["ControllerFriendlyName"]">
+                                &#x274C;
+                            </a>
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td></td>
+                    <td align="right">
+                        Total Fees:
+                    </td>
+                    <td>
+                        <strong>@totalFees.ToString("c")</strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <partial name="_PagingNavBar" />
+    <div>
+        <a asp-action="Edit" asp-controller="Patient" asp-route-id="@patient.ID">Edit @patient.Summary</a> |
+        <a href='@ViewData["returnURL"]'>Back to Patient List</a>
+    </div>
+</form>
+@section Scripts {
+    <script type="text/javascript">
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+}

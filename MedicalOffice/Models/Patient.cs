@@ -109,6 +109,7 @@ namespace MedicalOffice.Models
 
         [Display(Name = "History")]
         public ICollection<PatientCondition> PatientConditions { get; set; } = new HashSet<PatientCondition>();
+        public ICollection<Appointment> Appointments { get; set; } = new HashSet<Appointment>();
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

@@ -17,6 +17,62 @@ namespace MedicalOffice.Data.MOMigrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
 
+            modelBuilder.Entity("MedicalOffice.Models.Appointment", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("AppointmentReasonID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DoctorID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("ExtraFee")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PatientID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AppointmentReasonID");
+
+                    b.HasIndex("DoctorID");
+
+                    b.HasIndex("PatientID");
+
+                    b.ToTable("Appointments");
+                });
+
+            modelBuilder.Entity("MedicalOffice.Models.AppointmentReason", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReasonName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("AppointmentReasons");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Condition", b =>
                 {
                     b.Property<int>("ID")
@@ -317,6 +373,32 @@ namespace MedicalOffice.Data.MOMigrations
                     b.HasDiscriminator().HasValue("DoctorDocument");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.Appointment", b =>
+                {
+                    b.HasOne("MedicalOffice.Models.AppointmentReason", "AppointmentReason")
+                        .WithMany("Appointments")
+                        .HasForeignKey("AppointmentReasonID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MedicalOffice.Models.Doctor", "Doctor")
+                        .WithMany("Appointments")
+                        .HasForeignKey("DoctorID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MedicalOffice.Models.Patient", "Patient")
+                        .WithMany("Appointments")
+                        .HasForeignKey("PatientID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppointmentReason");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.DoctorSpecialty", b =>
                 {
                     b.HasOne("MedicalOffice.Models.Doctor", "Doctor")
@@ -416,6 +498,11 @@ namespace MedicalOffice.Data.MOMigrations
                     b.Navigation("Doctor");
                 });
 
+            modelBuilder.Entity("MedicalOffice.Models.AppointmentReason", b =>
+                {
+                    b.Navigation("Appointments");
+                });
+
             modelBuilder.Entity("MedicalOffice.Models.Condition", b =>
                 {
                     b.Navigation("PatientConditions");
@@ -423,6 +510,8 @@ namespace MedicalOffice.Data.MOMigrations
 
             modelBuilder.Entity("MedicalOffice.Models.Doctor", b =>
                 {
+                    b.Navigation("Appointments");
+
                     b.Navigation("DoctorDocuments");
 
                     b.Navigation("DoctorSpecialties");
@@ -437,6 +526,8 @@ namespace MedicalOffice.Data.MOMigrations
 
             modelBuilder.Entity("MedicalOffice.Models.Patient", b =>
                 {
+                    b.Navigation("Appointments");
+
                     b.Navigation("PatientConditions");
 
                     b.Navigation("PatientPhoto");

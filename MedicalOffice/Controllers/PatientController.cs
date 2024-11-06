@@ -252,12 +252,10 @@ namespace MedicalOffice.Controllers
                     await AddPicture(patient, thePicture);
                     _context.Add(patient);
                     await _context.SaveChangesAsync();
-                    var returnUrl = ViewData["returnURL"]?.ToString();
-                    if (string.IsNullOrEmpty(returnUrl))
-                    {
-                        return RedirectToAction(nameof(Index));
-                    }
-                    return Redirect(returnUrl);
+
+                    await _context.SaveChangesAsync();
+                    //Send on to add appointments
+                    return RedirectToAction("Index", "PatientAppointment", new { PatientID = patient.ID });
                 }
             }
             catch (RetryLimitExceededException /* dex */)//This is a Transaction in the Database!
@@ -350,12 +348,10 @@ namespace MedicalOffice.Controllers
                     }
 
                     await _context.SaveChangesAsync();
-                    var returnUrl = ViewData["returnURL"]?.ToString();
-                    if (string.IsNullOrEmpty(returnUrl))
-                    {
-                        return RedirectToAction(nameof(Index));
-                    }
-                    return Redirect(returnUrl);
+
+                    await _context.SaveChangesAsync();
+                    //Send on to add appointments
+                    return RedirectToAction("Index", "PatientAppointment", new { PatientID = patientToUpdate.ID });
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {

@@ -48,6 +48,8 @@ namespace MedicalOffice.Data
         public DbSet<UploadedFile> UploadedFiles { get; set; }
         public DbSet<PatientPhoto> PatientPhotos { get; set; }
         public DbSet<PatientThumbnail> PatientThumbnails { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<AppointmentReason> AppointmentReasons { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -74,6 +76,23 @@ namespace MedicalOffice.Data
                 .HasMany<DoctorSpecialty>(p => p.DoctorSpecialties)
                 .WithOne(c => c.Specialty)
                 .HasForeignKey(c => c.SpecialtyID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //Step 14: Note: Allow Cascade Delete from Patient to Appointment
+            //but don't allow it from Doctor or AppointmentReason
+            //From CHILD point of view
+            modelBuilder.Entity<Appointment>()
+                .HasOne(pc => pc.AppointmentReason)
+                .WithMany(c => c.Appointments)
+                .HasForeignKey(pc => pc.AppointmentReasonID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            //Step 14: For fun we wrote this one the other way around.
+            //From PARENT point of view
+            modelBuilder.Entity<Doctor>()
+                .HasMany<Appointment>(d => d.Appointments)
+                .WithOne(p => p.Doctor)
+                .HasForeignKey(p => p.DoctorID)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

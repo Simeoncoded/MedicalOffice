@@ -48,7 +48,7 @@ namespace MedicalOffice.Models
 
         [Display(Name = "Documents")]
         public ICollection<DoctorDocument> DoctorDocuments { get; set; } = new HashSet<DoctorDocument>();
-
+          public ICollection<Appointment> Appointments { get; set; } = new HashSet<Appointment>();
 
     }
 }

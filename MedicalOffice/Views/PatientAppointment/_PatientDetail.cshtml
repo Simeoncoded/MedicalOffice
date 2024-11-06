@@ -1,0 +1,124 @@
+﻿@model MedicalOffice.Models.Patient
+
+<figure class="row">
+    <p class="col-auto">
+        @{
+            if (Model.PatientThumbnail?.Content != null)
+            {
+                string imageBase64 = Convert.ToBase64String(Model.PatientThumbnail.Content);
+                string imageSrc = string.Format("data:" + Model.PatientThumbnail.MimeType + ";base64,{0}", imageBase64);
+                <img src="@imageSrc" alt="Profile Picture of @Model.Summary" title="Profile Picture of @Model.Summary" class="img-fluid rounded" />
+            }
+            else
+            {
+                <img src="~/images/blankProfile.jpg" style="max-height: 80px; max-width: 96px" class="img-fluid rounded" />
+            }
+        }
+    </p>
+    <figcaption class="col mt-3"><h3><text class="d-none d-sm-inline">Patient: </text>@Model.Summary</h3></figcaption>
+</figure>
+<div class="row">
+    <div class="col-6">
+        <dl class="row">
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.OHIP)
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.OHIP)
+            </dd>
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.LastName)
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.LastName)
+            </dd>
+            <dt class="col-md-4">
+                First/Middle
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.FirstName) @Html.DisplayFor(model => Model.MiddleName)
+            </dd>
+            <dt class="col-md-4">
+                Age (@Html.DisplayNameFor(model => Model.DOB))
+            </dt>
+            <dd class="col-md-8">
+                @Model.Age (@Html.DisplayFor(model => Model.DOB))
+            </dd>
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.ExpYrVisits)
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.ExpYrVisits)
+            </dd>
+        </dl>
+    </div>
+    <div class="col-6">
+        <dl class="row">
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.Phone)
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.PhoneFormatted)
+            </dd>
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.Email)
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.Email)
+            </dd>
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.Doctor)
+            </dt>
+            <dd class="col-md-8">
+                @Html.DisplayFor(model => Model.Doctor.Summary)
+            </dd>
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.MedicalTrial)
+            </dt>
+            <dd class="col-md-8">
+                @{
+                    if (Model.MedicalTrialID != null)
+                    {
+                        <a href="#" data-bs-toggle="tooltip" title="@Model.MedicalTrial.TrialName">Yes</a>
+                    }
+                    else
+                    {
+                        @:No
+                    }
+                }
+            </dd>
+            <dt class="col-md-4">
+                @Html.DisplayNameFor(model => Model.PatientConditions)
+            </dt>
+            <dd class="col-md-8">
+                @{
+                    int condCount = Model.PatientConditions.Count;
+                    if (condCount > 0)
+                    {
+                        string firstCond = Model.PatientConditions.FirstOrDefault().Condition.ConditionName;
+                        if (condCount > 1)
+                        {
+                            string condList = "";
+                            var c = Model.PatientConditions.ToList();
+                            for (int i = 1; i < condCount; i++)//Skip the first because we have it already
+                            {
+                                condList += c[i].Condition.ConditionName + " <br />";
+                            }
+                            <a class="" role="button" data-bs-toggle="collapse" href="#collapseHistory@(Model.ID)"
+                               aria-expanded="false" aria-controls="collapseHistory@(Model.ID)">
+                                @firstCond <span class="badge bg-info">@condCount</span>
+                            </a>
+                            <div class="collapse" id="collapseHistory@(Model.ID)">
+                                @Html.Raw(condList)
+                            </div>
+                        }
+                        else
+                        {
+                            @firstCond
+                        }
+                    }
+                }
+            </dd>
+        </dl>
+    </div>
+</div>

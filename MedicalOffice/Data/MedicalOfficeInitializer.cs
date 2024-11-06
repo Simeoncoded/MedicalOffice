@@ -132,7 +132,23 @@ namespace MedicalOffice.Data
                         }
                         context.SaveChanges();
                     }
+                    //Put in the "Seed Required Data" region
+                    //Add Appointment Reasons
+                    string[] AppointmentReasons = new string[] { "Illness", "Accident", "Mental State", "Annual Checkup", "COVID-19", "Work Injury" };
+                    if (!context.AppointmentReasons.Any())
+                    {
+                        foreach (string s in AppointmentReasons)
+                        {
+                            AppointmentReason ar = new AppointmentReason
+                            {
+                                ReasonName = s
+                            };
+                            context.AppointmentReasons.Add(ar);
+                        }
+                        context.SaveChanges();
+                    }
                 }
+
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.GetBaseException().Message);
@@ -388,6 +404,52 @@ namespace MedicalOffice.Data
                                 context.SaveChanges();
                             }
                         }
+                        //Add Appointments
+                        //Create 5 notes from Bacon ipsum
+                        string[] baconNotes = new string[] { "Bacon ipsum dolor amet meatball corned beef kevin, alcatra kielbasa biltong drumstick strip steak spare ribs swine. Pastrami shank swine leberkas bresaola, prosciutto frankfurter porchetta ham hock short ribs short loin andouille alcatra. Andouille shank meatball pig venison shankle ground round sausage kielbasa. Chicken pig meatloaf fatback leberkas venison tri-tip burgdoggen tail chuck sausage kevin shank biltong brisket.", "Sirloin shank t-bone capicola strip steak salami, hamburger kielbasa burgdoggen jerky swine andouille rump picanha. Sirloin porchetta ribeye fatback, meatball leberkas swine pancetta beef shoulder pastrami capicola salami chicken. Bacon cow corned beef pastrami venison biltong frankfurter short ribs chicken beef. Burgdoggen shank pig, ground round brisket tail beef ribs turkey spare ribs tenderloin shankle ham rump. Doner alcatra pork chop leberkas spare ribs hamburger t-bone. Boudin filet mignon bacon andouille, shankle pork t-bone landjaeger. Rump pork loin bresaola prosciutto pancetta venison, cow flank sirloin sausage.", "Porchetta pork belly swine filet mignon jowl turducken salami boudin pastrami jerky spare ribs short ribs sausage andouille. Turducken flank ribeye boudin corned beef burgdoggen. Prosciutto pancetta sirloin rump shankle ball tip filet mignon corned beef frankfurter biltong drumstick chicken swine bacon shank. Buffalo kevin andouille porchetta short ribs cow, ham hock pork belly drumstick pastrami capicola picanha venison.", "Picanha andouille salami, porchetta beef ribs t-bone drumstick. Frankfurter tail landjaeger, shank kevin pig drumstick beef bresaola cow. Corned beef pork belly tri-tip, ham drumstick hamburger swine spare ribs short loin cupim flank tongue beef filet mignon cow. Ham hock chicken turducken doner brisket. Strip steak cow beef, kielbasa leberkas swine tongue bacon burgdoggen beef ribs pork chop tenderloin.", "Kielbasa porchetta shoulder boudin, pork strip steak brisket prosciutto t-bone tail. Doner pork loin pork ribeye, drumstick brisket biltong boudin burgdoggen t-bone frankfurter. Flank burgdoggen doner, boudin porchetta andouille landjaeger ham hock capicola pork chop bacon. Landjaeger turducken ribeye leberkas pork loin corned beef. Corned beef turducken landjaeger pig bresaola t-bone bacon andouille meatball beef ribs doner. T-bone fatback cupim chuck beef ribs shank tail strip steak bacon." };
+
+                        //Create collections of the primary keys of the three Parents
+                        int[] AppointmentReasonIDs = context.AppointmentReasons.Select(s => s.ID).ToArray();
+                        int AppointmentReasonIDCount = AppointmentReasonIDs.Length;
+
+                        int[] patientIDs = context.Patients.Select(d => d.ID).ToArray();
+                        int patientIDCount = patientIDs.Length;
+
+                        //Appointments - the Intersection
+                        //Add a few appointments to each patient
+                        if (!context.Appointments.Any())
+                        {
+                            foreach (int i in patientIDs)
+                            {
+                                //i loops through the primary keys of the Patients
+                                //j is just a counter so we add some Appointments to a Patient
+                                //k lets us step through all AppointmentReasons so we can make sure each gets used
+                                int k = 0;//Start with the first AppointmentReason
+                                int howMany = random.Next(1, AppointmentReasonIDCount);
+                                for (int j = 1; j <= howMany; j++)
+                                {
+                                    k = (k >= AppointmentReasonIDCount) ? 0 : k;
+                                    Appointment a = new Appointment()
+                                    {
+                                        PatientID = i,
+                                        AppointmentReasonID = AppointmentReasonIDs[k],
+                                        StartTime = DateTime.Today.AddDays(-1 * random.Next(120)),
+                                        Notes = baconNotes[random.Next(5)],
+                                        DoctorID = doctorIDs[random.Next(doctorIDCount)]
+                                    };
+                                    //StartTime will be at midnight so add hours to it so it is more reasonable
+                                    a.StartTime = a.StartTime.AddHours(random.Next(8, 16));
+                                    //Set a random EndTime between 10 and 120 minutes later
+                                    a.EndTime = a.StartTime + new TimeSpan(0, random.Next(1, 12) * 10, 0);
+                                    //Zero out some ExtraFees
+                                    if (k % 2 == 0) a.ExtraFee = 0;
+                                    k++;
+                                    context.Appointments.Add(a);
+                                }
+                                context.SaveChanges();
+                            }
+                        }
+
 
                     }
                     catch (Exception ex)
