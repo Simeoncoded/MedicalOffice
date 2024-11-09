@@ -153,96 +153,113 @@ namespace MedicalOffice.Controllers
             return View(pagedData);
         }
 
-        // GET: PatientAppointment/Details/5
-        public async Task<IActionResult> Details(int? id)
+
+        // GET: PatientAppointment/Create
+        // GET: PatientAppointment/Add
+        public IActionResult Add(int? PatientID, string PatientName)
         {
-            if (id == null)
+            if (!PatientID.HasValue)
+            {
+                return Redirect(ViewData["returnURL"].ToString());
+            }
+
+            ViewData["PatientName"] = PatientName;
+            Appointment a = new Appointment()
+            {
+                PatientID = PatientID.GetValueOrDefault()
+            };
+            PopulateDropDownLists();
+            return View(a);
+        }
+        // POST: PatientAppointment/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: PatientAppointment/Add
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Add([Bind("StartTime,EndTime,Notes,ExtraFee,DoctorID," +
+            "PatientID,AppointmentReasonID")] Appointment appointment, string PatientName)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _context.Add(appointment);
+                    await _context.SaveChangesAsync();
+                    return Redirect(ViewData["returnURL"].ToString());
+                }
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem " +
+                    "persists see your system administrator.");
+            }
+
+            PopulateDropDownLists(appointment);
+            ViewData["PatientName"] = PatientName;
+            return View(appointment);
+        }
+        // GET: PatientAppointment/Edit/5
+        // GET: PatientAppointment/Update/5
+        public async Task<IActionResult> Update(int? id)
+        {
+            if (id == null || _context.Appointments == null)
             {
                 return NotFound();
             }
 
             var appointment = await _context.Appointments
-                .Include(a => a.AppointmentReason)
-                .Include(a => a.Doctor)
-                .Include(a => a.Patient)
-                .FirstOrDefaultAsync(m => m.ID == id);
+               .Include(a => a.AppointmentReason)
+               .Include(a => a.Patient)
+               .AsNoTracking()
+               .FirstOrDefaultAsync(m => m.ID == id);
             if (appointment == null)
             {
                 return NotFound();
             }
 
+            PopulateDropDownLists(appointment);
             return View(appointment);
+
         }
-
-        // GET: PatientAppointment/Create
-        public IActionResult Create()
-        {
-            ViewData["AppointmentReasonID"] = new SelectList(_context.AppointmentReasons, "ID", "ReasonName");
-            ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName");
-            ViewData["PatientID"] = new SelectList(_context.Patients, "ID", "FirstName");
-            return View();
-        }
-
-        // POST: PatientAppointment/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,StartTime,EndTime,Notes,ExtraFee,DoctorID,PatientID,AppointmentReasonID")] Appointment appointment)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(appointment);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["AppointmentReasonID"] = new SelectList(_context.AppointmentReasons, "ID", "ReasonName", appointment.AppointmentReasonID);
-            ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName", appointment.DoctorID);
-            ViewData["PatientID"] = new SelectList(_context.Patients, "ID", "FirstName", appointment.PatientID);
-            return View(appointment);
-        }
-
-        // GET: PatientAppointment/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment == null)
-            {
-                return NotFound();
-            }
-            ViewData["AppointmentReasonID"] = new SelectList(_context.AppointmentReasons, "ID", "ReasonName", appointment.AppointmentReasonID);
-            ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName", appointment.DoctorID);
-            ViewData["PatientID"] = new SelectList(_context.Patients, "ID", "FirstName", appointment.PatientID);
-            return View(appointment);
-        }
-
         // POST: PatientAppointment/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: PatientAppointment/Update/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,StartTime,EndTime,Notes,ExtraFee,DoctorID,PatientID,AppointmentReasonID")] Appointment appointment)
+        public async Task<IActionResult> Update(int id)
         {
-            if (id != appointment.ID)
+            var appointmentToUpdate = await _context.Appointments
+                .Include(a => a.AppointmentReason)
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(m => m.ID == id);
+
+            //Check that you got it or exit with a not found error
+            if (appointmentToUpdate == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            //Try updating it with the values posted
+            if (await TryUpdateModelAsync<Appointment>(appointmentToUpdate, "",
+                a => a.StartTime, a => a.EndTime, a => a.Notes, a => a.ExtraFee,
+                a => a.DoctorID, a => a.AppointmentReasonID))
             {
                 try
                 {
-                    _context.Update(appointment);
+                    _context.Update(appointmentToUpdate);
                     await _context.SaveChangesAsync();
+                    return Redirect(ViewData["returnURL"].ToString());
                 }
+
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AppointmentExists(appointment.ID))
+                    if (!AppointmentExists(appointmentToUpdate.ID))
                     {
                         return NotFound();
                     }
@@ -251,48 +268,63 @@ namespace MedicalOffice.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem " +
+                        "persists see your system administrator.");
+                }
             }
-            ViewData["AppointmentReasonID"] = new SelectList(_context.AppointmentReasons, "ID", "ReasonName", appointment.AppointmentReasonID);
-            ViewData["DoctorID"] = new SelectList(_context.Doctors, "ID", "FirstName", appointment.DoctorID);
-            ViewData["PatientID"] = new SelectList(_context.Patients, "ID", "FirstName", appointment.PatientID);
-            return View(appointment);
+            PopulateDropDownLists(appointmentToUpdate);
+            return View(appointmentToUpdate);
         }
 
+
         // GET: PatientAppointment/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // GET: PatientAppointment/Remove/5
+        public async Task<IActionResult> Remove(int? id)
         {
-            if (id == null)
+            if (id == null || _context.Appointments == null)
             {
                 return NotFound();
             }
 
             var appointment = await _context.Appointments
                 .Include(a => a.AppointmentReason)
-                .Include(a => a.Doctor)
                 .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (appointment == null)
             {
                 return NotFound();
             }
-
             return View(appointment);
         }
 
-        // POST: PatientAppointment/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // POST: PatientAppointment/Remove/5
+        [HttpPost, ActionName("Remove")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> RemoveConfirmed(int id)
         {
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment != null)
+            var appointment = await _context.Appointments
+                .Include(a => a.AppointmentReason)
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .FirstOrDefaultAsync(m => m.ID == id);
+
+            try
             {
                 _context.Appointments.Remove(appointment);
+                await _context.SaveChangesAsync();
+                return Redirect(ViewData["returnURL"].ToString());
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem " +
+                    "persists see your system administrator.");
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return View(appointment);
         }
 
         private SelectList AppointmentReasonSelectList(int? id)
@@ -309,16 +341,18 @@ namespace MedicalOffice.Controllers
                          select d;
             return new SelectList(dQuery, "ID", "FormalName", id);
         }
-        private void PopulateDropDownLists(Appointment? appointment = null)
+        private void PopulateDropDownLists(Appointment appointment = null)
         {
             ViewData["AppointmentReasonID"] = AppointmentReasonSelectList(appointment?.AppointmentReasonID);
             ViewData["DoctorID"] = DoctorSelectList(appointment?.DoctorID);
         }
-
 
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.ID == id);
         }
     }
-}
+
+    }
+
+   
