@@ -1,0 +1,28 @@
+﻿@model IEnumerable<MedicalOffice.Models.DoctorSpecialty>
+<br />
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h4 class="panel-title">Accredited Specialties</h4>
+    </div>
+    <div class="panel-body scrollable-panel">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        Specialty
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Specialty.SpecialtyName)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

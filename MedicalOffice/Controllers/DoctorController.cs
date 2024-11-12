@@ -266,6 +266,32 @@ namespace MedicalOffice.Controllers
 
             return File(theFile.FileContent.Content, theFile.MimeType, theFile.FileName);
         }
+        public PartialViewResult ListOfSpecialtiesDetails(int id)
+        {
+            var query = from s in _context.DoctorSpecialties.Include(p => p.Specialty)
+                        where s.DoctorID == id
+                        orderby s.Specialty.SpecialtyName
+                        select s;
+            return PartialView("_ListOfSpecialities", query.ToList());
+        }
+
+        public PartialViewResult ListOfPatientsDetails(int id)
+        {
+            var query = from p in _context.Patients
+                        where p.DoctorID == id
+                        orderby p.LastName, p.FirstName
+                        select p;
+            return PartialView("_ListOfPatients", query.ToList());
+        }
+
+        public PartialViewResult ListOfDocumentsDetails(int id)
+        {
+            var query = from p in _context.DoctorDocuments
+                        where p.DoctorID == id
+                        orderby p.FileName
+                        select p;
+            return PartialView("_ListOfDocuments", query.ToList());
+        }
 
         private void PopulateAssignedSpecialtyData(Doctor doctor)
         {
